@@ -9,8 +9,11 @@ Last run: November 2, 2026.
 | Detection logic (heart rate, falls, stillness, tap test) | 15 simulated nights, each run 100 times with different random data, plus 9 tap-test rule cases | All pass |
 | Web prototype | 31 browser scenarios in Chrome, each in light and dark mode (62 runs) | All pass |
 | Text-message relay | 16 tests: message wording, bad input, wrong token, duplicates, partial failures | All pass |
+| Android/Wear OS shared logic (Kotlin) | Compiled and run: 15 rule and message checks, 24 night-mode state checks, and a replay of 75 recorded simulated nights | All pass; identical decisions to the reference on all 75 nights |
+| Android alert format | Kotlin-built alert sent through the relay's own validation and message builder | Accepted; correct text |
 | Swift shared logic | 8 XCTest cases written | **Not yet run.** Needs a Mac or a Linux machine with Swift: `cd apple && swift test` |
 | Apple Watch and iPhone apps | — | **Not yet built or run.** Needs Xcode and real devices |
+| Wear OS watch and Android phone apps | — | **Not yet built or run.** Needs Android Studio and real devices |
 
 ## Run the tests yourself
 
@@ -18,6 +21,7 @@ Last run: November 2, 2026.
 node tests/simulate-nights.mjs                 # detection logic, one run each
 SEEDS=100 node tests/simulate-nights.mjs       # each scenario 100 times
 node relay/test.js                             # relay
+bash tests/run-kotlin-checks.sh                # Android shared code + replay of recorded nights
 python3 tests/prototype_test.py                # web prototype (needs: pip install playwright)
 cd apple && swift test                         # Swift logic (Mac, or Linux with Swift)
 ```
@@ -55,7 +59,8 @@ Simulated data is a model, not real people. These results show the logic behaves
 5. **Long dancing left no baseline.** After two hours of dancing there were no calm readings to compare with, so drops went unnoticed. The last known calm baseline is now kept.
 6. **Stillness was too eager.** At 10 minutes, a normal night produced extra check-ins in 5 of 40 runs. It's now 15 minutes; scheduled check-ins still cover anyone who is slumped.
 7. **Prototype bug:** a simulated heart-rate event could start a check-in after night mode had ended. Fixed and covered by two new tests.
-8. **Relay hardening:** names are stripped of characters that could form links, and the access token is compared in constant time.
+8. **Map links:** the relay now sends Google Maps links, which open on both iPhone and Android.
+9. **Relay hardening:** names are stripped of characters that could form links, and the access token is compared in constant time.
 
 ## Not yet tested
 

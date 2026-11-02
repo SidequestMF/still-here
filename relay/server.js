@@ -42,7 +42,7 @@ function composeMessage(event, now = new Date()) {
   const lines = [`Still Here alert for ${name} at ${time}.`, causeFn(name, trig)];
   const lat = Number(event.latitude), lon = Number(event.longitude);
   if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
-    lines.push(`Location: https://maps.apple.com/?ll=${lat.toFixed(5)},${lon.toFixed(5)}`);
+    lines.push(`Location: https://maps.google.com/?q=${lat.toFixed(5)},${lon.toFixed(5)}`);   // opens on iPhone and Android
   }
   lines.push(`Please call ${name} or go to them now. If you can't reach them and think they're in danger, call 911.`);
   return lines.join('\n');

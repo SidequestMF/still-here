@@ -19,7 +19,7 @@ async function t(name, fn) {
     const m = composeMessage(event);
     assert.match(m, /Still Here alert for Jess at 11:42 PM\./);
     assert.match(m, /No response to a check-in after an unusual change in heart rate\./);
-    assert.match(m, /maps\.apple\.com\/\?ll=44\.26190,-88\.41540/);
+    assert.match(m, /maps\.google\.com\/\?q=44\.26190,-88\.41540/);
     assert.match(m, /call 911/);
     assert.ok(m.length < 320, `message is ${m.length} chars; keep it to ~2 SMS segments`);
   });

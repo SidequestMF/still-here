@@ -37,7 +37,7 @@ const motionKinds = {
 
 // segments: [{ from, to (minutes), motion, hr: [startBpm, endBpm] | null }]
 // events:   [{ at (minutes), impact: g }]  and  hrGlitches: [{ at, value }]
-function runNight({ name, minutes, segments, events = [], hrGlitches = [], seed = 1, stopAtFirst = false }) {
+function runNight({ name, minutes, segments, events = [], hrGlitches = [], seed = 1, stopAtFirst = false, trace = null }) {
   const r = rng(seed);
   const hrw = new HeartRateWatcher(0);
   const mw = new MotionWatcher(0);
@@ -53,6 +53,7 @@ function runNight({ name, minutes, segments, events = [], hrGlitches = [], seed 
     const ev = pending.find(e => !e.done && t >= e.t);
     if (ev) { g = ev.impact; ev.done = true; }
     const m = mw.add(g, t);
+    if (trace) trace.push(`M ${t} ${g}`);
     if (m) { fired.push({ type: m, min: t / 60 }); if (stopAtFirst) break; }
 
     if (i % 50 === 0 && seg.hr) {            // heart rate every 5 seconds
@@ -60,6 +61,7 @@ function runNight({ name, minutes, segments, events = [], hrGlitches = [], seed 
       let bpm = seg.hr[0] + (seg.hr[1] - seg.hr[0]) * Math.min(1, Math.max(0, p)) + 3 * gauss(r);
       const gl = glitches.find(x => !x.done && t >= x.t);
       if (gl) { bpm = gl.value; gl.done = true; }
+      if (trace) trace.push(`H ${t} ${bpm}`);
       if (hrw.add(bpm, t, mw.secondsSinceMovement(t), mw.intensity)) {
         fired.push({ type: 'heartRate', min: t / 60 });
         hrw.snooze(t);                        // wearer passed the check and carried on
@@ -222,6 +224,24 @@ const scenarios = [
 ];
 
 const SEEDS = Number(process.env.SEEDS || 1);
+
+// TRACE_DIR=dir writes each scenario's exact inputs and results, so other ports (Kotlin)
+// can replay them and prove they make identical decisions.
+if (process.env.TRACE_DIR) {
+  const fs = await import('node:fs');
+  fs.mkdirSync(process.env.TRACE_DIR, { recursive: true });
+  scenarios.forEach((sc, i) => {
+    for (let k = 0; k < 5; k++) {
+      const trace = [];
+      const res = runNight({ ...sc, seed: sc.seed + k * 7919, trace });
+      const fired = res.fired.map(f => `${f.type}@${f.min.toFixed(4)}`).join(' ');
+      fs.writeFileSync(`${process.env.TRACE_DIR}/s${String(i).padStart(2, '0')}-${k}.txt`,
+        `# ${sc.name}\nSTOP ${sc.stopAtFirst ? 1 : 0}\nEXPECT ${fired}\n` + trace.join('\n') + '\n');
+    }
+  });
+  console.log(`Wrote traces for ${scenarios.length} scenarios x 5 runs to ${process.env.TRACE_DIR}`);
+  process.exit(0);
+}
 let failures = 0;
 const rows = [];
 function judge(sc, res) {
