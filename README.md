@@ -1,5 +1,11 @@
 # Still Here
 
+[![Tests](https://github.com/SidequestMF/still-here/actions/workflows/tests.yml/badge.svg)](https://github.com/SidequestMF/still-here/actions/workflows/tests.yml)
+[![Try the demo](https://img.shields.io/badge/try_the_demo-on_your_phone-f2b544)](https://sidequestmf.github.io/still-here/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+![Still Here: if you stop responding on a night out, your friends get your location.](docs/preview.png)
+
 **An open-source smartwatch safety app for nights out, for Apple Watch and for Samsung Galaxy Watch and other Wear OS watches.** It checks on you, and if you stop responding normally, it texts the people you chose with your location.
 
 Drink spiking is hard to detect. Test strips miss many drugs, and the most common substance in drug-facilitated assault is plain alcohol. Still Here doesn't test the drink. It watches for the *effect*, whatever the cause:
@@ -31,7 +37,7 @@ Harvard, MIT, and Yale are pre-filled from each school's own website. [Add your 
 
 ## Try it now (no watch needed)
 
-The web prototype runs on any phone and walks through the whole flow with simulated sensors: [web-prototype/index.html](web-prototype/index.html). Nothing is sent.
+**[Open the demo on your phone →](https://sidequestmf.github.io/still-here/)** It walks through the whole flow, including campus mode, with simulated sensors. Nothing is sent. (Source: [web-prototype/index.html](web-prototype/index.html).)
 
 ## What's in this repository
 
@@ -51,6 +57,9 @@ The web prototype runs on any phone and walks through the whole flow with simula
 - **Android / Wear OS developers:** the same for Galaxy Watch and Pixel Watch. See [android/README.md](android/README.md).
 - **Researchers:** the detection thresholds are educated guesses. Real-world data (with ethics review) is the most valuable contribution. See [docs/RESEARCH.md](docs/RESEARCH.md).
 - **Survivors, advocates, campus safety teams, bar staff:** tell us what would actually be used on a night out, and what would make it worse. Open an issue.
+- **Students:** [add your campus](https://github.com/SidequestMF/still-here/issues/new?template=add-campus.yml), or [report a wrong number](https://github.com/SidequestMF/still-here/issues/new?template=wrong-number.yml).
+
+New here? See [CONTRIBUTING.md](CONTRIBUTING.md) and the [good first issues](https://github.com/SidequestMF/still-here/labels/good%20first%20issue).
 
 ## Important limits
 

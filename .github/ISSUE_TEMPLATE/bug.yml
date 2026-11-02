@@ -1,0 +1,11 @@
+name: Something isn't working
+description: A bug in the demo or the apps.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: "What happened, and what did you expect?" }
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes: { label: Device, placeholder: "e.g. iPhone 15 + Apple Watch Series 9, or Galaxy Watch 6" }

@@ -1,0 +1,24 @@
+name: Report a wrong number
+description: A campus phone number in Still Here is wrong or out of date. These are fixed first.
+title: "Wrong number: "
+labels: ["wrong-number", "urgent"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thank you. A wrong emergency number is dangerous, so these reports are checked first. **If you need help right now, call 911.**"
+  - type: input
+    id: school
+    attributes: { label: School, placeholder: "e.g. MIT" }
+    validations: { required: true }
+  - type: dropdown
+    id: which
+    attributes:
+      label: Which number?
+      options: [Campus police, Safe ride or escort, Confidential support]
+    validations: { required: true }
+  - type: input
+    id: correct
+    attributes: { label: Correct number, description: "If you know it.", placeholder: "617-555-1212" }
+  - type: input
+    id: source
+    attributes: { label: Where it's listed, description: "A link to the school's own page with the right number.", placeholder: "https://..." }

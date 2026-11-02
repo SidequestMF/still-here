@@ -1,0 +1,38 @@
+name: Demo site
+on:
+  push:
+    branches: [main]
+    paths: ["web-prototype/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: { group: pages, cancel-in-progress: true }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: "${{ steps.deploy.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the page
+        run: |
+          mkdir -p site
+          {
+            echo '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            echo '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+            echo '<meta name="description" content="Still Here: a free, open-source smartwatch check-in for nights out. Try the demo; nothing is sent.">'
+            echo '<meta property="og:title" content="Still Here">'
+            echo '<meta property="og:description" content="Open-source smartwatch check-in for nights out. If you stop responding, your friends get your location.">'
+            echo '<meta property="og:image" content="https://sidequestmf.github.io/still-here/preview.png">'
+            echo '<meta name="twitter:card" content="summary_large_image">'
+            echo '<style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}</style>'
+            echo '</head><body>'
+            cat web-prototype/index.html
+            echo '</body></html>'
+          } > site/index.html
+          cp docs/preview.png site/preview.png
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: deploy
+        uses: actions/deploy-pages@v4

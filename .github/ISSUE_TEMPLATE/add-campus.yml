@@ -1,0 +1,26 @@
+name: Add my campus
+description: Ask for your school to be added to campus mode's starter list.
+title: "Add campus: "
+labels: ["add-campus", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: "Every number must come from the school's own website. Students can always enter their own numbers in the app; this list just fills them in."
+  - type: input
+    id: school
+    attributes: { label: School }
+    validations: { required: true }
+  - type: input
+    id: police
+    attributes: { label: Campus police emergency number, placeholder: "617-555-1212" }
+    validations: { required: true }
+  - type: input
+    id: ride
+    attributes: { label: Safe ride or walking escort, description: "Name, number and hours, if your school has one." }
+  - type: input
+    id: support
+    attributes: { label: Confidential support line, description: "Name and number of the school's advocacy or sexual assault support office." }
+  - type: textarea
+    id: sources
+    attributes: { label: Links to the school's pages with these numbers }
+    validations: { required: true }
