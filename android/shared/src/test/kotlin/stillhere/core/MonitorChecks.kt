@@ -97,6 +97,42 @@ fun main() {
         check("test result outside a check-in is ignored", run { m.recordTest(1.0, 0, 11.0); m.stop(); !m.recordTest(1.0, 0, 12.0) })
     }
 
+    // Campus mode
+    run {
+        val ride = CampusLine("MIT SafeRide", "+16172532997")
+        val campusSettings = settings.copy(campus = CampusInfo("MIT", CampusLine("MIT Police", "+16172531212"), ride = ride))
+        val rides = mutableListOf<CampusLine>()
+        val alerts = mutableListOf<AlertEvent>()
+        val m = NightMonitor(campusSettings, 1.8, object : NightMonitor.Listener {
+            override fun onPhaseChanged(phase: NightMonitor.Phase) {}
+            override fun onCheckReminder() {}
+            override fun onAlert(event: AlertEvent) { alerts += event }
+            override fun onShakyPass(ride: CampusLine) { rides += ride }
+        })
+        m.start(0.0)
+        m.beginCheck(Trigger.MANUAL, 10.0); m.recordTest(2.0, 0, 12.0)
+        check("normal pass: no ride offer", rides.isEmpty())
+        m.beginCheck(Trigger.MANUAL, 20.0); m.recordTest(3.5, 0, 25.0)
+        check("slow pass: ride offered", rides.singleOrNull() == ride)
+        m.beginCheck(Trigger.MANUAL, 30.0); m.recordTest(6.0, 0, 35.0); m.recordTest(2.0, 0, 40.0)
+        check("passed on second try: ride offered", rides.size == 2)
+        check("still in night mode after a ride offer", m.phase == NightMonitor.Phase.Armed)
+        m.askForHelp(50.0)
+        check("alert carries campus info", alerts.single().campus?.police?.phone == "+16172531212")
+        check("alert text has campus police", alerts.single().message().contains("Campus police (MIT Police): 617-253-1212"))
+    }
+    run {
+        var offered = false
+        val m = NightMonitor(settings, 1.8, object : NightMonitor.Listener {
+            override fun onPhaseChanged(phase: NightMonitor.Phase) {}
+            override fun onCheckReminder() {}
+            override fun onAlert(event: AlertEvent) {}
+            override fun onShakyPass(ride: CampusLine) { offered = true }
+        })
+        m.start(0.0); m.beginCheck(Trigger.MANUAL, 10.0); m.recordTest(3.5, 0, 12.0)
+        check("no campus ride set: no offer", !offered)
+    }
+
     println(if (failed == 0) "All night-mode checks passed." else "$failed night-mode check(s) failed.")
     if (failed > 0) exitProcess(1)
 }

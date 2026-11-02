@@ -52,6 +52,7 @@ struct AlertEvent: Codable {
     var baselineTestSeconds: Double?
     var latitude: Double?
     var longitude: Double?
+    var campus: AlertCampus? = nil
 
     /// The text message contacts receive. Kept short so it fits in one or two SMS segments.
     func message() -> String {
@@ -65,12 +66,56 @@ struct AlertEvent: Codable {
         if let lat = latitude, let lon = longitude {
             lines.append("Location: https://maps.apple.com/?ll=\(lat),\(lon)")
         }
+        if let c = campus {
+            if !c.home.isEmpty { lines.append("\(wearerName) lives at: \(c.home)") }
+            lines.append("Campus police (\(c.policeName)): \(Phone.display(c.policePhone)). They can usually reach \(wearerName) fastest on campus.")
+        }
         lines.append("Please call \(wearerName) or go to them now. If you can't reach them and think they're in danger, call 911.")
         return lines.joined(separator: "\n")
     }
 }
 
 /// Settings chosen on the iPhone.
+/// A campus phone line: police, safe ride, or confidential support. Phone in +1... format.
+struct CampusLine: Codable, Hashable {
+    var name: String
+    var phone: String
+    var hours: String = ""
+}
+
+/// Campus mode, set up by the student. Police is required; the rest is optional.
+struct CampusInfo: Codable, Hashable {
+    var name: String
+    var police: CampusLine
+    var ride: CampusLine?
+    var support: CampusLine?
+    var home: String = ""        // where they live on campus, to help friends find them
+}
+
+/// The small slice of campus info that goes into an alert (and to the relay).
+struct AlertCampus: Codable {
+    var policeName: String
+    var policePhone: String
+    var home: String
+}
+
+enum Phone {
+    /// Any common US format → +1XXXXXXXXXX, or nil.
+    static func normalize(_ raw: String) -> String? {
+        let d = raw.filter(\.isNumber)
+        if d.count == 10 { return "+1" + d }
+        if d.count == 11, d.first == "1" { return "+" + d }
+        if raw.trimmingCharacters(in: .whitespaces).hasPrefix("+"), (11...15).contains(d.count) { return "+" + d }
+        return nil
+    }
+    /// +16174951212 → 617-495-1212
+    static func display(_ e164: String) -> String {
+        let d = Array(e164.filter(\.isNumber))
+        guard e164.hasPrefix("+1"), d.count == 11 else { return e164 }
+        return "\(String(d[1...3]))-\(String(d[4...6]))-\(String(d[7...10]))"
+    }
+}
+
 struct NightSettings: Codable {
     var wearerName: String = ""
     var contacts: [TrustedContact] = []
@@ -79,6 +124,7 @@ struct NightSettings: Codable {
     /// Your own HTTPS relay that sends SMS (see /relay). iOS does not let apps send texts silently.
     var relayURL: URL? = nil
     var relayToken: String = ""
+    var campus: CampusInfo? = nil
 }
 
 /// All detection thresholds live here.
@@ -103,6 +149,7 @@ enum Tuning {
     static let failMultiplier: Double = 2.2              // test slower than 2.2× baseline fails
     static let failMinExtraSeconds: Double = 2.5
     static let maxTestErrors = 2
+    static let shakyMultiplier: Double = 1.5             // passed, but this much slower than usual → offer a ride
 }
 
 /// Body the relay expects. Shared with the iPhone app.

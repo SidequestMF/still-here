@@ -14,6 +14,8 @@ class NightMonitor(
         fun onPhaseChanged(phase: Phase)
         fun onCheckReminder()                       // buzz again during an open check-in
         fun onAlert(event: AlertEvent)
+        /** A check-in was passed but shakily, and the student set a campus safe ride. */
+        fun onShakyPass(ride: CampusLine) {}
     }
 
     sealed class Phase {
@@ -97,6 +99,8 @@ class NightMonitor(
                 if (p.trigger == Trigger.HEART_RATE_CHANGE) hr.snooze(now)
                 phase = Phase.Armed
                 scheduleNext(now)
+                val ride = settings.campus?.ride
+                if (ride != null && ResponseRule.isShaky(seconds, errors, baselineTestSeconds, p.attempt)) listener.onShakyPass(ride)
             }
             p.attempt >= 2 -> raiseAlert(AlertCause.FAILED_TESTS, seconds, p.trigger, now)
             else -> phase = p.copy(attempt = p.attempt + 1)
@@ -125,6 +129,7 @@ class NightMonitor(
             wearerName = settings.wearerName, trigger = trigger, cause = cause,
             lastHeartRate = heartRate, baselineHeartRate = hr.baseline,
             testSeconds = testSeconds, baselineTestSeconds = baselineTestSeconds,
+            campus = settings.campus,
         ))
     }
 }

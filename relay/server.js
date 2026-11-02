@@ -44,8 +44,30 @@ function composeMessage(event, now = new Date()) {
   if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
     lines.push(`Location: https://maps.google.com/?q=${lat.toFixed(5)},${lon.toFixed(5)}`);   // opens on iPhone and Android
   }
+  // Campus mode: where they live and the campus police number. A bad field is dropped, never
+  // allowed to block the alert.
+  const campus = event.campus && typeof event.campus === 'object' ? event.campus : null;
+  if (campus) {
+    const home = cleanText(campus.home, 60);
+    if (home) lines.push(`${name} lives at: ${home}`);
+    const phone = typeof campus.policePhone === 'string' && /^\+[1-9]\d{9,14}$/.test(campus.policePhone) ? campus.policePhone : null;
+    if (phone) {
+      const police = cleanText(campus.policeName, 50) || 'Campus police';
+      lines.push(`Campus police (${police}): ${formatPhone(phone)}. They can usually reach ${name} fastest on campus.`);
+    }
+  }
   lines.push(`Please call ${name} or go to them now. If you can't reach them and think they're in danger, call 911.`);
   return lines.join('\n');
+}
+
+// Letters, digits, spaces and a little punctuation. No dots, slashes or colons, so it can't become a link.
+function cleanText(v, max) {
+  return String(v ?? '').replace(/[^\p{L}\p{M}\p{N} ',#()\-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+function formatPhone(e164) {
+  const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(e164);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : e164;
 }
 
 function validate(body) {

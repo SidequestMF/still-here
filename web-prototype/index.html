@@ -95,6 +95,18 @@ svg.spark{width:100%;height:56px;display:block}
 .contacts li{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--raise)}
 .contacts li span:last-child{font:500 12px/1.6 var(--mono);color:var(--muted)}
 
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.campus{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:14px}
+.sub{font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:4px 0 -4px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair > *{min-width:0}
+@media (max-width:420px){ .pair{grid-template-columns:1fr} }
+input[type=tel]{font:16px/1.4 var(--body);color:var(--fg);background:var(--raise);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0;width:100%;box-sizing:border-box}
+.err{color:var(--danger);font-weight:700;font-size:14px}
+.callout{background:var(--raise);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.num{white-space:nowrap}
+.callout .num{font:500 22px/1.2 var(--mono);font-variant-numeric:tabular-nums;user-select:all;-webkit-user-select:all}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
 footer{display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--muted)}
 footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 @media (prefers-reduced-motion: reduce){ .target.miss{animation:none} }
@@ -126,6 +138,35 @@ Sam (sister)</textarea>
         </select>
       </label>
       <label class="check" for="f-demo"><input id="f-demo" type="checkbox" checked> Demo speed: check every 60 seconds</label>
+      <fieldset class="campus">
+        <label class="check" for="f-campus-on"><input id="f-campus-on" type="checkbox"> I'm a student: set up campus mode</label>
+        <div id="campus-fields" class="stack" hidden>
+          <p class="small muted">Your friends get your campus police number in every alert, because campus police can usually reach a dorm fastest. You only set this up once.</p>
+          <label for="f-campus-pick">Fill in from a school (you can edit everything)
+            <select id="f-campus-pick"><option value="">My school isn't listed</option><option value="harvard">Harvard University (Cambridge)</option><option value="mit">MIT</option><option value="yale">Yale University</option></select>
+          </label>
+          <label for="f-campus-name">Campus<input id="f-campus-name" type="text" placeholder="e.g. State University"></label>
+          <p class="sub">Campus police · required</p>
+          <div class="pair">
+            <label for="f-police-name">Name<input id="f-police-name" type="text" placeholder="Campus Police"></label>
+            <label for="f-police-phone">Emergency number<input id="f-police-phone" type="tel" placeholder="555-555-1212"></label>
+          </div>
+          <p class="sub">Safe ride or walking escort · optional</p>
+          <div class="pair">
+            <label for="f-ride-name">Name<input id="f-ride-name" type="text" placeholder="SafeRide"></label>
+            <label for="f-ride-phone">Number<input id="f-ride-phone" type="tel"></label>
+          </div>
+          <label for="f-ride-hours">Hours<input id="f-ride-hours" type="text" placeholder="e.g. 10 p.m.–3 a.m. nightly"></label>
+          <p class="sub">Confidential support · optional</p>
+          <div class="pair">
+            <label for="f-support-name">Name<input id="f-support-name" type="text" placeholder="Campus advocacy office"></label>
+            <label for="f-support-phone">Number<input id="f-support-phone" type="tel"></label>
+          </div>
+          <label for="f-home">Where you live on campus, so friends can find you (optional)<input id="f-home" type="text" placeholder="e.g. Hall name, entry, floor"></label>
+          <p class="small muted" id="campus-source"></p>
+        </div>
+      </fieldset>
+      <p class="err" id="setup-err" role="alert" hidden></p>
       <p class="small muted">The name and contacts are examples. Change them to try it.</p>
       <button class="primary" type="submit">Next: learn my normal speed</button>
     </form>
@@ -202,6 +243,43 @@ Sam (sister)</textarea>
     </div>
   </section>
 
+  <!-- SHAKY PASS: SAFE RIDE -->
+  <section id="s-ride" class="stack" hidden>
+    <div class="status"><h1>You passed, but you're slower than usual</h1><span class="pill warn">Heads up</span></div>
+    <p>That's often a sign it's time to head home. Your campus has a free ride or escort:</p>
+    <div class="callout">
+      <span class="label" id="ride-name"></span>
+      <span class="num" id="ride-phone"></span>
+      <span class="small muted" id="ride-hours"></span>
+    </div>
+    <p class="small muted">On the watch, one tap calls this number.</p>
+    <button type="button" class="primary" id="ride-ok">I'm OK, keep watching</button>
+  </section>
+
+  <!-- AFTER AN ALERT -->
+  <section id="s-after" class="stack" hidden>
+    <h1>Glad you're safe</h1>
+    <div class="card">
+      <h2>If you think you were drugged</h2>
+      <ol class="steps">
+        <li>Go to an emergency room soon. Many drugs leave the body within a day.</li>
+        <li>Ask for a drug screen by name. Some hospitals don't test unless you ask.</li>
+        <li>Keep any cup or drink you still have.</li>
+        <li>You don't have to report anything to get care.</li>
+      </ol>
+    </div>
+    <div class="callout" id="support-box" hidden>
+      <span class="label" id="support-name"></span>
+      <span class="num" id="support-phone"></span>
+      <span class="small muted">Confidential. They can go with you, explain your options, or just listen.</span>
+    </div>
+    <p class="small muted">RAINN's National Sexual Assault Hotline: <span class="num" style="font-size:inherit">800-656-4673</span>, any time.</p>
+    <div class="row">
+      <button type="button" class="primary" id="after-back">Back to night mode</button>
+      <button type="button" id="after-end">End night</button>
+    </div>
+  </section>
+
   <footer>
     <p class="label">What the watch versions add (Apple Watch, Samsung Galaxy Watch)</p>
     <ul>
@@ -217,7 +295,7 @@ Sam (sister)</textarea>
 <script>
 (function(){
 const $ = s => document.querySelector(s);
-const screens = ['setup','calib','armed','check','alert'];
+const screens = ['setup','calib','armed','check','alert','ride','after'];
 let mode = 'setup';
 function show(name){ mode = name; screens.forEach(s => { $('#s-'+s).hidden = s !== name; }); window.scrollTo(0,0); }
 
@@ -226,10 +304,41 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 };
 
+/* Same list as campuses/campuses.json (tests/check-campuses.mjs keeps them identical). */
+const CAMPUSES = /* CAMPUSES-START */[{"id": "harvard", "name": "Harvard University (Cambridge)", "police": {"name": "Harvard University Police", "phone": "+16174951212"}, "ride": {"name": "Harvard campus escort (HUCEP)", "phone": "+16173848237", "hours": "Thu–Sat, 10:30 p.m.–3 a.m. Other times, HUPD can connect you with an escort or the Escort Van."}, "support": {"name": "Harvard OSAPR (confidential)", "phone": "+16174959100", "hours": "24/7"}, "sources": ["https://www.hupd.harvard.edu/campus-escort-program", "https://gsas.harvard.edu/student-life/harvard-resources/office-sexual-assault-prevention-and-response"], "verified": "2026-11-02"}, {"id": "mit", "name": "MIT", "police": {"name": "MIT Police", "phone": "+16172531212"}, "ride": {"name": "MIT SafeRide", "phone": "+16172532997", "hours": "On demand 11 p.m.–2:30 a.m. Sun–Wed and 11 p.m.–3:30 a.m. Thu–Sat (TransLoc Rider app); fixed routes 6–11 p.m."}, "support": {"name": "MIT Violence Prevention and Response (confidential)", "phone": "+16172532300", "hours": "Weekdays 9–5; after hours the phone tree connects to 24-hour help"}, "sources": ["https://prepared.mit.edu/response/emergency-contacts", "https://studentlife.mit.edu/vpr"], "verified": "2026-11-02"}, {"id": "yale", "name": "Yale University", "police": {"name": "Yale Police", "phone": "+12034324400"}, "ride": {"name": "Yale Security walking escort", "phone": "+12037855555", "hours": "Also in the LiveSafe app. The Campus Shuttle runs late at night too."}, "support": {"name": "Yale SHARE (confidential)", "phone": "+12034322000", "hours": ""}, "sources": ["https://college.yale.edu/life-at-yale/safety", "https://your.yale.edu/campus-essentials/community-safety/campus-safety-support/livesafe-app"], "verified": "2026-11-02"}]/* CAMPUSES-END */;
+
+/* Phone numbers: accept any US format, store +1XXXXXXXXXX, show XXX-XXX-XXXX. */
+function normPhone(v){
+  const d = String(v || '').replace(/\D/g, '');
+  if (d.length === 10) return '+1' + d;
+  if (d.length === 11 && d[0] === '1') return '+' + d;
+  if (String(v || '').trim().startsWith('+') && d.length >= 11 && d.length <= 15) return '+' + d;
+  return null;
+}
+function fmtPhone(e){
+  const m = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(e || '');
+  return m ? m[1] + '-' + m[2] + '-' + m[3] : (e || '');
+}
+const campusFieldIds = ['campus-name','police-name','police-phone','ride-name','ride-phone','ride-hours','support-name','support-phone','home'];
+function fillCampus(c){
+  $('#f-campus-name').value = c.name || '';
+  $('#f-police-name').value = c.police?.name || ''; $('#f-police-phone').value = fmtPhone(c.police?.phone);
+  $('#f-ride-name').value = c.ride?.name || ''; $('#f-ride-phone').value = fmtPhone(c.ride?.phone); $('#f-ride-hours').value = c.ride?.hours || '';
+  $('#f-support-name').value = c.support?.name || ''; $('#f-support-phone').value = fmtPhone(c.support?.phone);
+  if (c.home !== undefined) $('#f-home').value = c.home || '';
+}
+$('#f-campus-on').addEventListener('change', e => { $('#campus-fields').hidden = !e.target.checked; });
+$('#f-campus-pick').addEventListener('change', e => {
+  const c = CAMPUSES.find(x => x.id === e.target.value);
+  if (c){ fillCampus(c); $('#campus-source').textContent = 'Numbers from ' + c.name + "'s own website, checked " + c.verified + '. Check them again before you rely on them.'; }
+  else { $('#campus-source').textContent = ''; }
+});
+
 let cfg = store.get('stillhere-cfg', null);
 if (cfg){
   $('#f-name').value = cfg.name; $('#f-contacts').value = cfg.contacts.join('\n');
   $('#f-interval').value = String(cfg.interval); $('#f-demo').checked = cfg.demo;
+  if (cfg.campus){ $('#f-campus-on').checked = true; $('#campus-fields').hidden = false; fillCampus(cfg.campus); }
 }
 
 const fmtClock = d => d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
@@ -282,9 +391,31 @@ $('#setup').addEventListener('submit', e => {
     contacts: $('#f-contacts').value.split('\n').map(s => s.trim()).filter(Boolean),
     interval: Number($('#f-interval').value),
     demo: $('#f-demo').checked,
-    baseline: null
+    baseline: null,
+    campus: null
   };
-  if (!cfg.contacts.length){ $('#f-contacts').focus(); return; }
+  const err = msg => { $('#setup-err').textContent = msg; $('#setup-err').hidden = !msg; };
+  err('');
+  if (!cfg.contacts.length){ err('Add at least one person to alert.'); $('#f-contacts').focus(); return; }
+  if ($('#f-campus-on').checked){
+    const v = id => $('#f-' + id).value.trim();
+    const police = normPhone(v('police-phone'));
+    if (!police){ err('Enter your campus police emergency number, like 617-555-1212.'); $('#f-police-phone').focus(); return; }
+    const optional = (nameId, phoneId, label) => {
+      if (!v(phoneId)) return { ok: true, value: null };
+      const ph = normPhone(v(phoneId));
+      if (!ph){ err('Check the ' + label + ' number, or leave it empty.'); $('#f-' + phoneId).focus(); return { ok: false }; }
+      return { ok: true, value: { name: v(nameId) || label, phone: ph } };
+    };
+    const ride = optional('ride-name', 'ride-phone', 'safe ride'); if (!ride.ok) return;
+    const support = optional('support-name', 'support-phone', 'support'); if (!support.ok) return;
+    if (ride.value) ride.value.hours = v('ride-hours');
+    cfg.campus = {
+      name: v('campus-name') || 'Campus',
+      police: { name: v('police-name') || 'Campus police', phone: police },
+      ride: ride.value, support: support.value, home: v('home')
+    };
+  }
   store.set('stillhere-cfg', cfg);
   startCalibration();
 });
@@ -403,8 +534,11 @@ function attempt(){
     const ok = r.time <= limit && r.errors <= 2;
     if (ok){
       endCheck();
-      log('Passed check in ' + fmtSec(r.time) + ' (normal ' + fmtSec(cfg.baseline) + ').');
-      arm();
+      // Passed, but slower than usual or with mistakes: offer the campus ride.
+      const shaky = r.time > cfg.baseline * 1.5 || r.errors >= 1 || attempts > 1;
+      log('Passed check in ' + fmtSec(r.time) + ' (normal ' + fmtSec(cfg.baseline) + ')' + (shaky ? ', slower than usual.' : '.'));
+      if (shaky && cfg.campus && cfg.campus.ride) showRide();
+      else arm();
     } else if (attempts < 2){
       setTimeout(attempt, 400);
     } else {
@@ -432,11 +566,30 @@ function raiseAlert(reason){
     'Still Here alert for ' + cfg.name + ' at ' + at + '.\n\n' +
     reason + '\n\n' +
     'Live location: (link to map)\n\n' +
+    (cfg.campus ? (cfg.campus.home ? cfg.name + ' lives at: ' + cfg.campus.home + '\n' : '') +
+      'Campus police (' + cfg.campus.police.name + '): ' + fmtPhone(cfg.campus.police.phone) + '. They can usually reach ' + cfg.name + ' fastest on campus.\n\n' : '') +
     'Please call ' + cfg.name + ' or go to them now. If you can\'t reach ' + cfg.name + ' and you think they\'re in danger, call 911.';
   log('Alert sent to ' + cfg.contacts.length + ' contacts.');
   show('alert'); buzz([600,200,600]);
 }
-$('#all-clear').addEventListener('click', () => { log('All-clear sent. In the real app this needs your passcode.'); arm(); });
+$('#all-clear').addEventListener('click', () => { log('All-clear sent. In the real app this needs your passcode.'); showAfter(); });
+
+function showRide(){
+  const r = cfg.campus.ride;
+  $('#ride-name').textContent = r.name; $('#ride-phone').textContent = fmtPhone(r.phone);
+  $('#ride-hours').textContent = r.hours || ''; $('#ride-hours').hidden = !r.hours;
+  show('ride'); buzz(200);
+}
+$('#ride-ok').addEventListener('click', () => arm());
+
+function showAfter(){
+  const s = cfg.campus && cfg.campus.support;
+  $('#support-box').hidden = !s;
+  if (s){ $('#support-name').textContent = s.name; $('#support-phone').textContent = fmtPhone(s.phone); }
+  show('after');
+}
+$('#after-back').addEventListener('click', () => arm());
+$('#after-end').addEventListener('click', () => { log('Night mode off.'); show('setup'); });
 $('#restart').addEventListener('click', () => { $('#log').innerHTML = ''; show('setup'); });
 
 show('setup');

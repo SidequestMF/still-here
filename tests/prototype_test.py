@@ -284,11 +284,15 @@ def _(page):
     page.clock.run_for(5000)
     visible(page, "#s-armed")
 
-@test("All-clear goes back to night mode; Start over goes to setup")
+@test("All-clear shows next-morning advice, then back to night mode; Start over goes to setup")
 def _(page):
     armed(page)
     page.click("#check-now"); page.click("#need-help")
     page.click("#all-clear")
+    visible(page, "#s-after")
+    expect(page.locator("#s-after")).to_contain_text("Ask for a drug screen by name")
+    expect(page.locator("#support-box")).to_be_hidden()
+    page.click("#after-back")
     visible(page, "#s-armed")
     expect(page.locator("#log")).to_contain_text("All-clear sent")
     page.click("#check-now"); page.click("#need-help")
@@ -354,6 +358,164 @@ def _(page):
         page.click("#end-night")
         page.click("#setup button[type=submit]")
 
+
+# ---------- campus mode ----------
+def campus_on(page, school=None):
+    page.check("#f-campus-on")
+    if school:
+        page.select_option("#f-campus-pick", school)
+
+@test("Campus fields stay hidden until the student turns campus mode on")
+def _(page):
+    expect(page.locator("#campus-fields")).to_be_hidden()
+    page.check("#f-campus-on")
+    expect(page.locator("#campus-fields")).to_be_visible()
+
+@test("Picking a listed school fills in its numbers and says where they came from")
+def _(page):
+    campus_on(page, "mit")
+    assert page.input_value("#f-police-phone") == "617-253-1212"
+    assert page.input_value("#f-ride-phone") == "617-253-2997"
+    assert page.input_value("#f-support-phone") == "617-253-2300"
+    expect(page.locator("#campus-source")).to_contain_text("checked 2026-11-02")
+
+@test("Campus mode without a police number can't be saved")
+def _(page):
+    campus_on(page)
+    setup(page)
+    visible(page, "#s-setup")
+    expect(page.locator("#setup-err")).to_contain_text("campus police emergency number")
+
+@test("A mistyped safe-ride number is caught; an empty one is fine")
+def _(page):
+    campus_on(page)
+    page.fill("#f-police-phone", "(555) 555-0100")
+    page.fill("#f-ride-phone", "12345")
+    setup(page)
+    expect(page.locator("#setup-err")).to_contain_text("safe ride")
+    page.fill("#f-ride-phone", "")
+    page.click("#setup button[type=submit]")
+    visible(page, "#s-calib")
+
+@test("Any US number format works: (555) 555-0100, 555.555.0100, +1 555 555 0100")
+def _(page):
+    for raw in ["(555) 555-0100", "555.555.0100", "+1 555 555 0100", "1-555-555-0100"]:
+        page.goto(URL)
+        campus_on(page)
+        page.fill("#f-police-phone", raw)
+        setup(page); calibrate(page)
+        page.click("#check-now"); page.click("#need-help")
+        expect(page.locator("#alert-msg")).to_contain_text("555-555-0100")
+        page.evaluate("localStorage.clear()")
+
+@test("Alert text includes campus police and where the student lives")
+def _(page):
+    campus_on(page, "harvard")
+    page.fill("#f-home", "Quincy House, entry B")
+    armed(page)
+    page.click("#check-now"); page.click("#need-help")
+    msg = page.locator("#alert-msg")
+    expect(msg).to_contain_text("Campus police (Harvard University Police): 617-495-1212")
+    expect(msg).to_contain_text("Jess lives at: Quincy House, entry B")
+    expect(msg).to_contain_text("call 911")
+
+@test("Without campus mode, the alert has no campus lines")
+def _(page):
+    armed(page)
+    page.click("#check-now"); page.click("#need-help")
+    expect(page.locator("#alert-msg")).not_to_contain_text("Campus police")
+
+@test("Shaky pass (slower than usual) offers the campus safe ride")
+def _(page):
+    campus_on(page, "yale")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena", gaps_ms=(800, 800, 800))   # 2.4 s vs 0.9 s normal: passes, but slow
+    visible(page, "#s-ride")
+    expect(page.locator("#ride-phone")).to_have_text("203-785-5555")
+    page.click("#ride-ok")
+    visible(page, "#s-armed")
+    expect(page.locator("#log")).to_contain_text("slower than usual")
+
+@test("Shaky pass with a wrong tap also offers the ride")
+def _(page):
+    campus_on(page, "mit")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena", wrong=1)
+    visible(page, "#s-ride")
+
+@test("A normal-speed pass goes straight back to night mode, no ride offer")
+def _(page):
+    campus_on(page, "mit")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena")
+    visible(page, "#s-armed")
+
+@test("Shaky pass without a ride number set goes back to night mode")
+def _(page):
+    campus_on(page)
+    page.fill("#f-police-phone", "555-555-0100")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena", gaps_ms=(800, 800, 800))
+    visible(page, "#s-armed")
+
+@test("No check-ins fire while the ride offer is on screen")
+def _(page):
+    campus_on(page, "yale")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena", gaps_ms=(800, 800, 800))
+    page.clock.run_for(5 * 60_000)
+    visible(page, "#s-ride")
+
+@test("Next-morning screen shows the campus confidential support line")
+def _(page):
+    campus_on(page, "harvard")
+    armed(page)
+    page.click("#check-now"); page.click("#need-help"); page.click("#all-clear")
+    expect(page.locator("#support-box")).to_be_visible()
+    expect(page.locator("#support-phone")).to_have_text("617-495-9100")
+
+@test("Campus settings are remembered after reload")
+def _(page):
+    campus_on(page, "yale")
+    page.fill("#f-home", "Saybrook")
+    setup(page)
+    page.reload()
+    expect(page.locator("#campus-fields")).to_be_visible()
+    assert page.input_value("#f-police-phone") == "203-432-4400"
+    assert page.input_value("#f-home") == "Saybrook"
+
+@test("Campus text fields are shown as plain text, not run")
+def _(page):
+    campus_on(page)
+    page.fill("#f-police-name", '<img src=x onerror="window.pwned=1">')
+    page.fill("#f-police-phone", "555-555-0100")
+    page.fill("#f-home", "<b>x</b>")
+    armed(page)
+    page.click("#check-now"); page.click("#need-help")
+    page.clock.run_for(500)
+    assert page.evaluate("window.pwned") is None
+    expect(page.locator("#alert-msg")).to_contain_text("<b>x</b>")
+
+@test("Campus screens fit a 320px-wide phone")
+def _(page):
+    page.set_viewport_size({"width": 320, "height": 640})
+    campus_on(page, "harvard")
+    def no_overflow(label):
+        w = page.evaluate("[document.documentElement.scrollWidth, window.innerWidth]")
+        assert w[0] <= w[1], f"{label}: page is {w[0]}px wide in a {w[1]}px screen"
+    no_overflow("campus setup")
+    armed(page)
+    page.click("#check-now")
+    tap(page, "#check-arena", gaps_ms=(800, 800, 800))
+    no_overflow("ride offer")
+    page.click("#ride-ok"); page.click("#check-now"); page.click("#need-help"); page.click("#all-clear")
+    no_overflow("next morning")
+
 def screenshots(browser):
     for scheme in ("dark", "light"):
         page = fresh(None, browser, width=390, scheme=scheme)
@@ -364,6 +526,17 @@ def screenshots(browser):
         page.screenshot(path=str(SHOTS / f"3-check-in-{scheme}.png"), full_page=True)
         page.click("#need-help")
         page.screenshot(path=str(SHOTS / f"4-alert-{scheme}.png"), full_page=True)
+        page.context.close()
+        page = fresh(None, browser, width=390, scheme=scheme)
+        page.check("#f-campus-on"); page.select_option("#f-campus-pick", "mit")
+        page.screenshot(path=str(SHOTS / f"5-campus-setup-{scheme}.png"), full_page=True)
+        armed(page); page.click("#check-now")
+        tap(page, "#check-arena", gaps_ms=(800, 800, 800))
+        page.screenshot(path=str(SHOTS / f"6-safe-ride-{scheme}.png"), full_page=True)
+        page.click("#ride-ok"); page.click("#check-now"); page.click("#need-help")
+        page.screenshot(path=str(SHOTS / f"7-campus-alert-{scheme}.png"), full_page=True)
+        page.click("#all-clear")
+        page.screenshot(path=str(SHOTS / f"8-next-morning-{scheme}.png"), full_page=True)
         page.context.close()
 
 with sync_playwright() as p:

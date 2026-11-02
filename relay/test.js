@@ -50,6 +50,28 @@ async function t(name, fn) {
     assert.match(composeMessage({ ...event, createdAt: 'nonsense' }), /at \d{1,2}:\d{2} [AP]M/);
   });
 
+  await t('campus mode adds home and campus police lines', () => {
+    const m = composeMessage({ ...event, campus: { policeName: 'Harvard University Police', policePhone: '+16174951212', home: 'Quincy House, entry B' } });
+    assert.match(m, /Jess lives at: Quincy House, entry B/);
+    assert.match(m, /Campus police \(Harvard University Police\): 617-495-1212\. They can usually reach Jess fastest on campus\./);
+    assert.ok(m.indexOf('Campus police') < m.indexOf('call 911'), 'campus line comes before the 911 advice');
+    assert.ok(m.length < 480, `campus message is ${m.length} chars; keep it to ~3 SMS segments`);
+  });
+  await t('campus: bad police number is dropped, alert still sent', () => {
+    const m = composeMessage({ ...event, campus: { policeName: 'X', policePhone: 'call me maybe' } });
+    assert.doesNotMatch(m, /Campus police/); assert.match(m, /call 911/);
+  });
+  await t('campus: missing name gets a sensible default', () => {
+    assert.match(composeMessage({ ...event, campus: { policePhone: '+12034324400' } }), /Campus police \(Campus police\): 203-432-4400/);
+  });
+  await t('campus: text fields cannot carry links', () => {
+    const m = composeMessage({ ...event, campus: { policeName: 'Police https://evil.example', policePhone: '+12034324400', home: 'www.evil.example/x' } });
+    assert.doesNotMatch(m, /evil\.example|https:\/\/evil|www\./);
+  });
+  await t('campus: not an object is ignored', () => {
+    assert.doesNotMatch(composeMessage({ ...event, campus: 'Harvard' }), /Campus police/);
+  });
+
   await t('validate rejects bad input', () => {
     assert.ok(validate(null));
     assert.ok(validate({ event: { ...event, id: 'short' }, contacts }));

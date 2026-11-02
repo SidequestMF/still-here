@@ -7,11 +7,12 @@ Last run: November 2, 2026.
 | Area | How it's tested | Result |
 | --- | --- | --- |
 | Detection logic (heart rate, falls, stillness, tap test) | 15 simulated nights, each run 100 times with different random data, plus 9 tap-test rule cases | All pass |
-| Web prototype | 31 browser scenarios in Chrome, each in light and dark mode (62 runs) | All pass |
-| Text-message relay | 16 tests: message wording, bad input, wrong token, duplicates, partial failures | All pass |
-| Android/Wear OS shared logic (Kotlin) | Compiled and run: 15 rule and message checks, 24 night-mode state checks, and a replay of 75 recorded simulated nights | All pass; identical decisions to the reference on all 75 nights |
+| Web prototype | 47 browser scenarios in Chrome, each in light and dark mode (94 runs), including 16 for campus mode | All pass |
+| Text-message relay | 21 tests: message wording, campus lines, bad input, wrong token, duplicates, partial failures | All pass |
+| Campus list | Every number in `+1` format with an https source and a check date under a year old; the prototype's copy matches | All pass |
+| Android/Wear OS shared logic (Kotlin) | Compiled and run: 31 rule, message and campus checks, 31 night-mode state checks, and a replay of 75 recorded simulated nights | All pass; identical decisions to the reference on all 75 nights |
 | Android alert format | Kotlin-built alert sent through the relay's own validation and message builder | Accepted; correct text |
-| Swift shared logic | 8 XCTest cases written | **Not yet run.** Needs a Mac or a Linux machine with Swift: `cd apple && swift test` |
+| Swift shared logic | 11 XCTest cases written | **Not yet run.** Needs a Mac or a Linux machine with Swift: `cd apple && swift test` |
 | Apple Watch and iPhone apps | — | **Not yet built or run.** Needs Xcode and real devices |
 | Wear OS watch and Android phone apps | — | **Not yet built or run.** Needs Android Studio and real devices |
 
@@ -22,6 +23,7 @@ node tests/simulate-nights.mjs                 # detection logic, one run each
 SEEDS=100 node tests/simulate-nights.mjs       # each scenario 100 times
 node relay/test.js                             # relay
 bash tests/run-kotlin-checks.sh                # Android shared code + replay of recorded nights
+node tests/check-campuses.mjs                  # campus list
 python3 tests/prototype_test.py                # web prototype (needs: pip install playwright)
 cd apple && swift test                         # Swift logic (Mac, or Linux with Swift)
 ```

@@ -49,6 +49,11 @@ class MonitorService : LifecycleService(), NightMonitor.Listener, SensorEventLis
         val phase: StateFlow<NightMonitor.Phase> = _phase
         val heartRate = MutableStateFlow<Double?>(null)
         val nextCheckInAt = MutableStateFlow(0.0)
+        /** Set when a check-in was passed shakily and the student has a campus safe ride. */
+        val rideOffer = MutableStateFlow<stillhere.core.CampusLine?>(null)
+        /** Set after an all-clear, to show next-morning advice. */
+        val aftercare = MutableStateFlow(false)
+        var campusSupport: stillhere.core.CampusLine? = null; private set
         var instance: MonitorService? = null; private set
 
         fun start(context: Context, baselineTestSeconds: Double) {
@@ -70,6 +75,7 @@ class MonitorService : LifecycleService(), NightMonitor.Listener, SensorEventLis
         startForeground(1, notification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
 
         settings = SettingsStore.load(this)
+        campusSupport = settings.campus?.support
         monitor = NightMonitor(settings, intent?.getDoubleExtra("baseline", 0.0)?.takeIf { it > 0 }, this)
         monitor.start(now())
 
@@ -117,7 +123,7 @@ class MonitorService : LifecycleService(), NightMonitor.Listener, SensorEventLis
     // Called by the screens
     fun recordTest(seconds: Double, errors: Int) = monitor.recordTest(seconds, errors, now())
     fun askForHelp() = monitor.askForHelp(now())
-    fun allClear() = monitor.allClear(now())
+    fun allClear() { monitor.allClear(now()); aftercare.value = true }
     fun manualCheck() = monitor.beginCheck(stillhere.core.Trigger.MANUAL, now())
 
     fun endNight() {
@@ -140,6 +146,7 @@ class MonitorService : LifecycleService(), NightMonitor.Listener, SensorEventLis
         }
     }
     override fun onCheckReminder() = buzz(longArrayOf(0, 400))
+    override fun onShakyPass(ride: stillhere.core.CampusLine) { rideOffer.value = ride; buzz(longArrayOf(0, 200)) }
     override fun onAlert(event: AlertEvent) {
         buzz(longArrayOf(0, 600, 200, 600))
         PhoneLink.sendAlert(this, event, settings)

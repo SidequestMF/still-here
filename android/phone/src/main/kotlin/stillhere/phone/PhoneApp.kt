@@ -36,6 +36,9 @@ import org.json.JSONObject
 import stillhere.core.AlertCause
 import stillhere.core.AlertEvent
 import stillhere.core.Trigger
+import stillhere.core.normalizePhone
+import stillhere.core.CampusInfo
+import stillhere.core.CampusLine
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
@@ -68,6 +71,9 @@ private fun Setup(activity: MainActivity) {
     var relayUrl by remember { mutableStateOf(p.getString("relayUrl", "") ?: "") }
     var relayToken by remember { mutableStateOf(p.getString("relayToken", "") ?: "") }
     var directSms by remember { mutableStateOf(p.getBoolean("directSms", false)) }
+    val campusKeys = listOf("campusName", "policeName", "policePhone", "rideName", "ridePhone", "rideHours", "supportName", "supportPhone", "home")
+    var campusOn by remember { mutableStateOf(!p.getString("policePhone", "").isNullOrBlank()) }
+    val campus = remember { mutableStateMapOf<String, String>().apply { campusKeys.forEach { put(it, p.getString(it, "") ?: "") } } }
     var saved by remember { mutableStateOf("") }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -84,18 +90,43 @@ private fun Setup(activity: MainActivity) {
             modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
         OutlinedTextField(relayToken, { relayToken = it }, label = { Text("Relay token") },
             modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+        Row { Checkbox(campusOn, { campusOn = it }); Text("I'm a student: campus mode") }
+        if (campusOn) {
+            Text("Your contacts get your campus police number in every alert. A shaky check-in offers your safe ride. Numbers for some schools are in campuses/campuses.json.",
+                style = MaterialTheme.typography.bodySmall)
+            listOf("campusName" to "Campus", "policeName" to "Campus police name", "policePhone" to "Campus police emergency number",
+                "rideName" to "Safe ride or escort (optional)", "ridePhone" to "Its number", "rideHours" to "Its hours",
+                "supportName" to "Confidential support (optional)", "supportPhone" to "Its number",
+                "home" to "Where you live on campus (optional)").forEach { (k, label) ->
+                OutlinedTextField(campus[k] ?: "", { campus[k] = it }, label = { Text(label) }, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = if (k.endsWith("Phone")) KeyboardType.Phone else KeyboardType.Text))
+            }
+        }
         Row { Checkbox(directSms, { directSms = it; if (it) activity.askForSms() })
             Text("If the relay can't be reached, send texts from this phone instead") }
         Button(onClick = {
             val list = contacts.lines().mapNotNull(::parseContact)
             if (name.isBlank() || list.isEmpty()) { saved = "Add your name and at least one contact with a number like +16085551234."; return@Button }
             val lines = list.joinToString("\n") { "${it.first}|${it.second}" }
+            val cleaned = campusKeys.associateWith { "" }.toMutableMap()
+            if (campusOn) {
+                val police = normalizePhone(campus["policePhone"] ?: "")
+                if (police == null) { saved = "Enter your campus police emergency number, like 617-555-1212."; return@Button }
+                for (k in campusKeys) cleaned[k] = (campus[k] ?: "").trim()
+                cleaned["policePhone"] = police
+                for (k in listOf("ridePhone", "supportPhone")) {
+                    val raw = cleaned[k] ?: ""
+                    if (raw.isNotEmpty()) cleaned[k] = normalizePhone(raw) ?: run { saved = "Check the ${if (k == "ridePhone") "safe ride" else "support"} number, or leave it empty."; return@Button }
+                }
+            }
             p.edit().putString("name", name.trim()).putString("contacts", lines).putInt("interval", interval)
-                .putString("relayUrl", relayUrl.trim()).putString("relayToken", relayToken).putBoolean("directSms", directSms).apply()
+                .putString("relayUrl", relayUrl.trim()).putString("relayToken", relayToken).putBoolean("directSms", directSms)
+                .apply { cleaned.forEach { (k, v) -> putString(k, v) } }.apply()
             val req = PutDataMapRequest.create("/stillhere/settings").apply {
                 dataMap.putString("name", name.trim()); dataMap.putString("contacts", lines)
                 dataMap.putInt("interval", interval); dataMap.putInt("window", 60)
                 dataMap.putString("relayUrl", relayUrl.trim()); dataMap.putString("relayToken", relayToken)
+                cleaned.forEach { (k, v) -> dataMap.putString(k, v) }
                 dataMap.putLong("savedAt", System.currentTimeMillis())   // forces a sync even if nothing changed
             }.asPutDataRequest().setUrgent()
             Wearable.getDataClient(activity).putDataItem(req)
@@ -176,6 +207,10 @@ class AlertListenerService : WearableListenerService() {
             id = ev.getString("id"), timeZone = ev.optString("timeZone", "UTC"),
             latitude = ev.optDouble("latitude").takeIf { !it.isNaN() },
             longitude = ev.optDouble("longitude").takeIf { !it.isNaN() },
+            campus = ev.optJSONObject("campus")?.let { c ->
+                val phone = c.optString("policePhone")
+                if (phone.isBlank()) null else CampusInfo("", CampusLine(c.optString("policeName", "Campus police"), phone), home = c.optString("home"))
+            },
         )
         val sms = getSystemService(SmsManager::class.java)
         val parts = sms.divideMessage(event.message())

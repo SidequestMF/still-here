@@ -17,6 +17,10 @@ final class MonitorEngine: NSObject, ObservableObject {
     @Published private(set) var baselineHeartRate: Double?
     @Published private(set) var nextCheckIn: Date?
     @Published var baselineTestSeconds: Double?          // set by calibration
+    /// Set when a check-in was passed shakily and the student has a campus safe ride.
+    @Published var rideOffer: CampusLine?
+    /// Set after an all-clear, to show next-morning advice.
+    @Published var showAftercare = false
 
     var settings = NightSettings()
     var onAlert: ((AlertEvent) -> Void)?
@@ -122,6 +126,7 @@ final class MonitorEngine: NSObject, ObservableObject {
     /// Called by the response test view. Returns true if the check passed.
     @discardableResult
     func recordTest(seconds: Double, errors: Int, isFinalAttempt: Bool) -> Bool {
+        let attempt = isFinalAttempt ? 2 : 1
         let passed = ResponseRule.passes(seconds: seconds, errors: errors, baseline: baselineTestSeconds)
         if passed {
             checkTimer?.invalidate()
@@ -130,6 +135,10 @@ final class MonitorEngine: NSObject, ObservableObject {
             phase = .armed
             WKInterfaceDevice.current().play(.success)
             scheduleNextCheckIn()
+            if let ride = settings.campus?.ride,
+               ResponseRule.isShaky(seconds: seconds, errors: errors, baseline: baselineTestSeconds, attempt: attempt) {
+                rideOffer = ride
+            }
         } else if isFinalAttempt {
             raiseAlert(.failedTests, testSeconds: seconds)
         }
@@ -146,6 +155,7 @@ final class MonitorEngine: NSObject, ObservableObject {
     func allClear() {
         phase = .armed
         scheduleNextCheckIn()
+        showAftercare = true
     }
 
     private func raiseAlert(_ cause: AlertCause, testSeconds: Double?) {
@@ -160,7 +170,8 @@ final class MonitorEngine: NSObject, ObservableObject {
             lastHeartRate: heartRate,
             baselineHeartRate: baselineHeartRate,
             testSeconds: testSeconds,
-            baselineTestSeconds: baselineTestSeconds)
+            baselineTestSeconds: baselineTestSeconds,
+            campus: settings.campus.map { AlertCampus(policeName: $0.police.name, policePhone: $0.police.phone, home: $0.home) })
         onAlert?(event)
     }
 

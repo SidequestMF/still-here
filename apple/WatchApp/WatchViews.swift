@@ -95,8 +95,55 @@ struct ArmedView: View {
                 Button("End night", role: .destructive) { engine.endNight() }
             }
         }
+        .sheet(item: $engine.rideOffer) { ride in RideOfferView(ride: ride) }
+        .sheet(isPresented: $engine.showAftercare) { AftercareView(support: engine.settings.campus?.support) }
     }
 }
+
+/// Shown when a check-in was passed but slower than usual and the student set a campus ride.
+struct RideOfferView: View {
+    let ride: CampusLine
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                Text("You passed, but you're slower than usual").font(.headline).multilineTextAlignment(.center)
+                Text("Time to head home? \(ride.name) is free.").font(.footnote).multilineTextAlignment(.center)
+                Button("Call \(Phone.display(ride.phone))") { call(ride.phone) }.tint(.orange)
+                if !ride.hours.isEmpty { Text(ride.hours).font(.caption2).foregroundStyle(.secondary) }
+                Button("I'm OK") { dismiss() }
+            }
+        }
+    }
+}
+
+/// Next-morning advice after an alert, with the campus confidential line if set.
+struct AftercareView: View {
+    let support: CampusLine?
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Glad you're safe").font(.headline)
+                Text("If you think you were drugged, go to an ER soon and ask for a drug screen by name. Many drugs leave the body within a day.")
+                    .font(.footnote)
+                if let s = support {
+                    Text("\(s.name), confidential:").font(.footnote.bold())
+                    Button(Phone.display(s.phone)) { call(s.phone) }
+                }
+                Text("RAINN: 800-656-4673, any time.").font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+/// Places a call through the paired iPhone (or the watch's own cellular connection).
+func call(_ e164: String) {
+    if let url = URL(string: "tel:\(e164)") { WKExtension.shared().openSystemURL(url) }
+}
+
+extension CampusLine: Identifiable { var id: String { phone } }
 
 /// Must be held for 3 seconds so it can't fire from a bump.
 struct HoldForHelpButton: View {

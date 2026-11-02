@@ -28,7 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.*
 import kotlinx.coroutines.launch
+import android.content.Intent
+import android.net.Uri
+import stillhere.core.CampusLine
 import stillhere.core.NightMonitor
+import stillhere.core.formatPhone
 import kotlin.math.hypot
 import kotlin.random.Random
 
@@ -52,7 +56,12 @@ class WearActivity : ComponentActivity() {
 @Composable
 private fun App() {
     val phase by MonitorService.phase.collectAsState()
+    val ride by MonitorService.rideOffer.collectAsState()
+    val aftercare by MonitorService.aftercare.collectAsState()
     Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+        val r = ride
+        if (r != null && phase == NightMonitor.Phase.Armed) { RideOfferScreen(r); return@Box }
+        if (aftercare && phase == NightMonitor.Phase.Armed) { AftercareScreen(MonitorService.instance?.campusSupport); return@Box }
         when (val p = phase) {
             NightMonitor.Phase.Idle -> IdleScreen()
             NightMonitor.Phase.Armed -> ArmedScreen()
@@ -164,6 +173,40 @@ private fun AlertedScreen() {
             colors = ChipDefaults.chipColors(backgroundColor = Amber, contentColor = Color.Black)) }
     }
 }
+
+/** Passed, but slower than usual: offer the student's campus safe ride. */
+@Composable
+private fun RideOfferScreen(ride: CampusLine) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    ScalingLazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+        item { Text("You passed, but you're slower than usual", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) }
+        item { Text("Time to head home? ${ride.name} is free.", fontSize = 12.sp, textAlign = TextAlign.Center) }
+        item { Chip(onClick = { dial(context, ride.phone) }, label = { Text("Call ${formatPhone(ride.phone)}") },
+            colors = ChipDefaults.chipColors(backgroundColor = Amber, contentColor = Color.Black)) }
+        if (ride.hours.isNotBlank()) item { Text(ride.hours, fontSize = 11.sp, color = Color.Gray, textAlign = TextAlign.Center) }
+        item { Chip(onClick = { MonitorService.rideOffer.value = null }, label = { Text("I'm OK") },
+            colors = ChipDefaults.secondaryChipColors()) }
+    }
+}
+
+/** Next-morning advice after an alert, with the campus confidential line if set. */
+@Composable
+private fun AftercareScreen(support: CampusLine?) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    ScalingLazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+        item { Text("Glad you're safe", fontWeight = FontWeight.Bold) }
+        item { Text("If you think you were drugged, go to an ER soon and ask for a drug screen by name. Many drugs leave the body within a day.",
+            fontSize = 12.sp, textAlign = TextAlign.Center) }
+        if (support != null) item { Chip(onClick = { dial(context, support.phone) },
+            label = { Text(support.name) }, secondaryLabel = { Text(formatPhone(support.phone)) }) }
+        item { Text("RAINN: 800-656-4673, any time.", fontSize = 11.sp, color = Color.Gray) }
+        item { Chip(onClick = { MonitorService.aftercare.value = false }, label = { Text("Done") },
+            colors = ChipDefaults.secondaryChipColors()) }
+    }
+}
+
+private fun dial(context: android.content.Context, e164: String) =
+    context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$e164")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 
 /** Four numbered circles at random spots. Time runs from the first tap to the last. */
 @Composable

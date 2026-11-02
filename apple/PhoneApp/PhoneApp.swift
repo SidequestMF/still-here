@@ -85,6 +85,7 @@ struct SetupView: View {
                     Stepper("Answer within \(store.settings.responseWindowSeconds) seconds",
                             value: $store.settings.responseWindowSeconds, in: 30...180, step: 15)
                 }
+                CampusSection()
                 Section {
                     TextField("https://your-relay.example.com/alert", text: $relayText)
                         .keyboardType(.URL).textInputAutocapitalization(.never)
@@ -229,5 +230,68 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     }
     nonisolated func locationManager(_ m: CLLocationManager, didFailWithError error: Error) {
         Task { @MainActor in self.finish(nil) }
+    }
+}
+
+// MARK: Campus mode
+
+/// Student-set campus info: police (required), safe ride and confidential support (optional),
+/// and where they live. Numbers for some schools are listed in campuses/campuses.json.
+struct CampusSection: View {
+    @EnvironmentObject var store: SettingsStore
+    @State private var on = false
+    @State private var campusName = ""
+    @State private var policeName = "", policePhone = ""
+    @State private var rideName = "", ridePhone = "", rideHours = ""
+    @State private var supportName = "", supportPhone = ""
+    @State private var home = ""
+    @State private var problem = ""
+
+    var body: some View {
+        Section {
+            Toggle("I'm a student: campus mode", isOn: $on)
+            if on {
+                TextField("Campus", text: $campusName)
+                TextField("Campus police name", text: $policeName)
+                TextField("Campus police emergency number", text: $policePhone).keyboardType(.phonePad)
+                TextField("Safe ride or escort (optional)", text: $rideName)
+                TextField("Its number", text: $ridePhone).keyboardType(.phonePad)
+                TextField("Its hours", text: $rideHours)
+                TextField("Confidential support (optional)", text: $supportName)
+                TextField("Its number", text: $supportPhone).keyboardType(.phonePad)
+                TextField("Where you live on campus (optional)", text: $home)
+                Button("Save campus") { save() }
+                if !problem.isEmpty { Text(problem).foregroundStyle(.red) }
+            }
+        } header: { Text("Campus") } footer: {
+            Text("Your contacts get your campus police number in every alert. A shaky check-in offers your safe ride.")
+        }
+        .onAppear(perform: load)
+        .onChange(of: on) { isOn in if !isOn { store.settings.campus = nil } }
+    }
+
+    private func load() {
+        guard let c = store.settings.campus else { return }
+        on = true; campusName = c.name
+        policeName = c.police.name; policePhone = Phone.display(c.police.phone)
+        rideName = c.ride?.name ?? ""; ridePhone = c.ride.map { Phone.display($0.phone) } ?? ""; rideHours = c.ride?.hours ?? ""
+        supportName = c.support?.name ?? ""; supportPhone = c.support.map { Phone.display($0.phone) } ?? ""
+        home = c.home
+    }
+
+    private func save() {
+        problem = ""
+        guard let police = Phone.normalize(policePhone) else { problem = "Enter your campus police emergency number."; return }
+        func optional(_ name: String, _ phone: String, _ label: String, hours: String = "") -> (ok: Bool, line: CampusLine?) {
+            if phone.trimmingCharacters(in: .whitespaces).isEmpty { return (true, nil) }
+            guard let p = Phone.normalize(phone) else { problem = "Check the \(label) number, or leave it empty."; return (false, nil) }
+            return (true, CampusLine(name: name.isEmpty ? label : name, phone: p, hours: hours))
+        }
+        let ride = optional(rideName, ridePhone, "safe ride", hours: rideHours); guard ride.ok else { return }
+        let support = optional(supportName, supportPhone, "support"); guard support.ok else { return }
+        store.settings.campus = CampusInfo(
+            name: campusName.isEmpty ? "Campus" : campusName,
+            police: CampusLine(name: policeName.isEmpty ? "Campus police" : policeName, phone: police),
+            ride: ride.line, support: support.line, home: home)
     }
 }

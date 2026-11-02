@@ -24,6 +24,7 @@ object Tuning {
     const val FAIL_MULTIPLIER = 2.2
     const val FAIL_MIN_EXTRA_SECONDS = 2.5
     const val MAX_TEST_ERRORS = 2
+    const val SHAKY_MULTIPLIER = 1.5
 }
 
 private fun median(xs: List<Double>): Double = xs.sorted()[xs.size / 2]
@@ -145,4 +146,8 @@ object ResponseRule {
         val limit = maxOf(baseline * Tuning.FAIL_MULTIPLIER, baseline + Tuning.FAIL_MIN_EXTRA_SECONDS)
         return seconds <= limit && errors <= Tuning.MAX_TEST_ERRORS
     }
+
+    /** Passed, but slower than usual, with a wrong tap, or only on the second try: offer a safe ride. */
+    fun isShaky(seconds: Double, errors: Int, baseline: Double?, attempt: Int): Boolean =
+        attempt > 1 || errors >= 1 || (baseline != null && baseline > 0 && seconds > baseline * Tuning.SHAKY_MULTIPLIER)
 }

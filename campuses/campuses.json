@@ -1,0 +1,41 @@
+{
+  "about": "Starter list for campus mode. Students can pick one to prefill, then edit anything. Every number here was checked against the school's own website on the date shown. Numbers change: re-check each one before adding or updating, and include the source link.",
+  "campuses": [
+    {
+      "id": "harvard",
+      "name": "Harvard University (Cambridge)",
+      "police": { "name": "Harvard University Police", "phone": "+16174951212" },
+      "ride": { "name": "Harvard campus escort (HUCEP)", "phone": "+16173848237", "hours": "Thu–Sat, 10:30 p.m.–3 a.m. Other times, HUPD can connect you with an escort or the Escort Van." },
+      "support": { "name": "Harvard OSAPR (confidential)", "phone": "+16174959100", "hours": "24/7" },
+      "sources": [
+        "https://www.hupd.harvard.edu/campus-escort-program",
+        "https://gsas.harvard.edu/student-life/harvard-resources/office-sexual-assault-prevention-and-response"
+      ],
+      "verified": "2026-11-02"
+    },
+    {
+      "id": "mit",
+      "name": "MIT",
+      "police": { "name": "MIT Police", "phone": "+16172531212" },
+      "ride": { "name": "MIT SafeRide", "phone": "+16172532997", "hours": "On demand 11 p.m.–2:30 a.m. Sun–Wed and 11 p.m.–3:30 a.m. Thu–Sat (TransLoc Rider app); fixed routes 6–11 p.m." },
+      "support": { "name": "MIT Violence Prevention and Response (confidential)", "phone": "+16172532300", "hours": "Weekdays 9–5; after hours the phone tree connects to 24-hour help" },
+      "sources": [
+        "https://prepared.mit.edu/response/emergency-contacts",
+        "https://studentlife.mit.edu/vpr"
+      ],
+      "verified": "2026-11-02"
+    },
+    {
+      "id": "yale",
+      "name": "Yale University",
+      "police": { "name": "Yale Police", "phone": "+12034324400" },
+      "ride": { "name": "Yale Security walking escort", "phone": "+12037855555", "hours": "Also in the LiveSafe app. The Campus Shuttle runs late at night too." },
+      "support": { "name": "Yale SHARE (confidential)", "phone": "+12034322000", "hours": "" },
+      "sources": [
+        "https://college.yale.edu/life-at-yale/safety",
+        "https://your.yale.edu/campus-essentials/community-safety/campus-safety-support/livesafe-app"
+      ],
+      "verified": "2026-11-02"
+    }
+  ]
+}

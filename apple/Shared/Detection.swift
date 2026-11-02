@@ -139,4 +139,11 @@ enum ResponseRule {
         let limit = max(base * Tuning.failMultiplier, base + Tuning.failMinExtraSeconds)
         return seconds <= limit && errors <= Tuning.maxTestErrors
     }
+
+    /// Passed, but slower than usual, with a wrong tap, or only on the second try: offer a safe ride.
+    static func isShaky(seconds: Double, errors: Int, baseline: Double?, attempt: Int) -> Bool {
+        if attempt > 1 || errors >= 1 { return true }
+        guard let base = baseline, base > 0 else { return false }
+        return seconds > base * Tuning.shakyMultiplier
+    }
 }

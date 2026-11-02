@@ -34,6 +34,27 @@ fun main() {
     check("json has contacts", j.contains("\"contacts\":[{\"name\":\"Maya\",\"phone\":\"+16085551234\"}]"))
     check("json uses relay's trigger names", j.contains("\"trigger\":\"helpButton\"") && j.contains("\"cause\":\"askedForHelp\""))
 
+    // Campus mode
+    check("phone: (617) 495-1212", normalizePhone("(617) 495-1212") == "+16174951212")
+    check("phone: 617.495.1212", normalizePhone("617.495.1212") == "+16174951212")
+    check("phone: +1 617 495 1212", normalizePhone("+1 617 495 1212") == "+16174951212")
+    check("phone: 1-617-495-1212", normalizePhone("1-617-495-1212") == "+16174951212")
+    check("phone: too short is rejected", normalizePhone("495-1212") == null)
+    check("phone: letters are rejected", normalizePhone("call me") == null)
+    check("phone display", formatPhone("+16174951212") == "617-495-1212")
+    val campus = CampusInfo("Harvard", CampusLine("Harvard University Police", "+16174951212"), home = "Quincy House")
+    val cm = e.copy(campus = campus).message()
+    check("campus message: home", cm.contains("Jess lives at: Quincy House"))
+    check("campus message: police line", cm.contains("Campus police (Harvard University Police): 617-495-1212. They can usually reach Jess fastest on campus."))
+    check("campus message: 911 still last", cm.trimEnd().endsWith("call 911."))
+    check("no campus → no campus lines", !m.contains("Campus police"))
+    val cj = e.copy(campus = campus).relayJson(listOf(TrustedContact("Maya", "+16085551234")))
+    check("campus json for relay", cj.contains("\"campus\":{\"policeName\":\"Harvard University Police\",\"policePhone\":\"+16174951212\",\"home\":\"Quincy House\"}"))
+    check("shaky: slow pass", ResponseRule.isShaky(3.0, 0, 1.8, 1))
+    check("shaky: wrong tap", ResponseRule.isShaky(1.8, 1, 1.8, 1))
+    check("shaky: second try", ResponseRule.isShaky(1.8, 0, 1.8, 2))
+    check("not shaky: normal pass", !ResponseRule.isShaky(2.5, 0, 1.8, 1))
+
     println(if (failed == 0) "All core checks passed." else "$failed core check(s) failed.")
     if (failed > 0) exitProcess(1)
 }

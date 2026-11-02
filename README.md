@@ -19,6 +19,16 @@ Please treat it as a stepping stone. If you know watch development, health sensi
 
 > **Status: prototype.** The decision logic is tested in simulation; neither watch app has **been built or run on a real watch yet.** Please don't rely on it for safety yet. See [What's tested](docs/TESTING.md).
 
+## Campus mode
+
+Students can set up campus mode once, for any school:
+
+- **Campus police number in every alert**, so friends know who can reach a dorm fastest.
+- **A safe-ride offer** when a check-in is passed but shaky (slower than usual, a wrong tap, or a second try).
+- **Next-morning advice** after any alert: get to an ER soon, ask for a drug screen by name, plus the school's confidential support line.
+
+Harvard, MIT, and Yale are pre-filled from each school's own website. [Add your school](campuses/README.md) in a few minutes.
+
 ## Try it now (no watch needed)
 
 The web prototype runs on any phone and walks through the whole flow with simulated sensors: [web-prototype/index.html](web-prototype/index.html). Nothing is sent.
@@ -30,6 +40,7 @@ The web prototype runs on any phone and walks through the whole flow with simula
 | `web-prototype/` | Single-page demo of the check-in and alert flow |
 | `apple/` | Swift source for the Apple Watch app and its iPhone companion, plus the shared detection logic and its unit tests |
 | `android/` | Kotlin source for Samsung Galaxy Watch and other Wear OS watches, and the Android phone companion |
+| `campuses/` | Starter list of campus numbers for campus mode, with sources |
 | `relay/` | Tiny Node.js service that sends the alert texts (iPhone apps can't text silently) |
 | `tests/` | Simulated-night tests of the detection logic and browser tests of the prototype |
 | `docs/` | Safety limits, test results, and open research questions |

@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import stillhere.core.AlertEvent
+import stillhere.core.CampusInfo
+import stillhere.core.CampusLine
 import stillhere.core.NightSettings
 import stillhere.core.TrustedContact
 import java.net.HttpURLConnection
@@ -59,6 +61,12 @@ object SettingsStore {
             responseWindowSeconds = p.getInt("window", 60),
             relayUrl = p.getString("relayUrl", null),
             relayToken = p.getString("relayToken", "") ?: "",
+            campus = p.getString("policePhone", null)?.takeIf { it.isNotBlank() }?.let { police ->
+                fun line(prefix: String) = p.getString("${prefix}Phone", null)?.takeIf { it.isNotBlank() }
+                    ?.let { CampusLine(p.getString("${prefix}Name", "") ?: "", it, p.getString("${prefix}Hours", "") ?: "") }
+                CampusInfo(p.getString("campusName", "") ?: "", CampusLine(p.getString("policeName", "") ?: "", police),
+                    line("ride"), line("support"), p.getString("home", "") ?: "")
+            },
         )
     }
 
@@ -70,6 +78,10 @@ object SettingsStore {
             .putInt("window", map.getInt("window", 60))
             .putString("relayUrl", map.getString("relayUrl"))
             .putString("relayToken", map.getString("relayToken"))
+            .apply {
+                for (k in listOf("campusName", "policeName", "policePhone", "rideName", "ridePhone", "rideHours",
+                                 "supportName", "supportPhone", "home")) putString(k, map.getString(k, ""))
+            }
             .apply()
     }
 }

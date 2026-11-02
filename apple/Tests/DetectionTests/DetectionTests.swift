@@ -78,4 +78,26 @@ final class DetectionTests: XCTestCase {
         let m = e.message()
         XCTAssertTrue(m.contains("Jess")); XCTAssertTrue(m.contains("911")); XCTAssertTrue(m.contains("maps.apple.com"))
     }
+
+    func testCampusPhoneFormats() {
+        XCTAssertEqual(Phone.normalize("(617) 495-1212"), "+16174951212")
+        XCTAssertEqual(Phone.normalize("1-617-495-1212"), "+16174951212")
+        XCTAssertNil(Phone.normalize("495-1212"))
+        XCTAssertEqual(Phone.display("+16174951212"), "617-495-1212")
+    }
+
+    func testCampusAlertLines() {
+        var e = AlertEvent(wearerName: "Jess", trigger: .stumble, cause: .noResponse, createdAt: t0)
+        e.campus = AlertCampus(policeName: "MIT Police", policePhone: "+16172531212", home: "Next House")
+        let m = e.message()
+        XCTAssertTrue(m.contains("Jess lives at: Next House"))
+        XCTAssertTrue(m.contains("Campus police (MIT Police): 617-253-1212"))
+    }
+
+    func testShakyRule() {
+        XCTAssertTrue(ResponseRule.isShaky(seconds: 3.0, errors: 0, baseline: 1.8, attempt: 1))
+        XCTAssertTrue(ResponseRule.isShaky(seconds: 1.8, errors: 1, baseline: 1.8, attempt: 1))
+        XCTAssertTrue(ResponseRule.isShaky(seconds: 1.8, errors: 0, baseline: 1.8, attempt: 2))
+        XCTAssertFalse(ResponseRule.isShaky(seconds: 2.5, errors: 0, baseline: 1.8, attempt: 1))
+    }
 }

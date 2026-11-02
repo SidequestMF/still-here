@@ -9,6 +9,8 @@ Please read this before using or promoting Still Here.
 - **It will raise some false check-ins.** Sitting very still for 15 minutes, or a calm heart rate after a busy night, can start a check-in. A check-in is a quick tap test, not an alert; only failing it twice or not answering sends texts.
 - **Alerts depend on technology working:** a charged watch and phone, a network connection, the relay service running, and contacts who read their texts.
 - **It can't call 911 for you.** Apps aren't allowed to. Contacts are told to call 911 if they can't reach you.
+- **It never contacts campus police itself.** In campus mode, friends get the campus police number. Automatic police alerts would need each department's agreement and would risk false alarms.
+- **Campus numbers can go out of date.** The starter list shows the date each number was checked, and the test suite fails once a number is a year old.
 
 ## Design choices made for safety
 
