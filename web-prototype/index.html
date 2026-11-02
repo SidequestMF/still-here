@@ -1,0 +1,443 @@
+<title>Still Here</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow phone-width column; each step of the night is its own screen, with a status card on top and quiet supporting detail below. Dark-first, like the place it gets used. */
+:root{
+  --bg:#14152b; --surface:#1d1f3a; --raise:#262951; --line:#34375f;
+  --fg:#eeedf7; --muted:#a6a7c6;
+  --accent:#f2b544; --accent-ink:#1c1405;
+  --danger:#ff6f61; --danger-ink:#2a0703; --ok:#62d6a2;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f3f2f9; --surface:#ffffff; --raise:#ebeaf6; --line:#d6d5ea;
+  --fg:#1b1c35; --muted:#585a7c;
+  --accent:#efa72d; --accent-ink:#1c1405;
+  --danger:#c93a2e; --danger-ink:#ffffff; --ok:#1e875a; color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#f3f2f9; --surface:#ffffff; --raise:#ebeaf6; --line:#d6d5ea;
+  --fg:#1b1c35; --muted:#585a7c;
+  --accent:#efa72d; --accent-ink:#1c1405;
+  --danger:#c93a2e; --danger-ink:#ffffff; --ok:#1e875a; color-scheme:light }
+
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body)}
+.wrap{max-width:460px;margin:0 auto;padding-block:20px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font:800 26px/1 var(--display);letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%,transparent)}
+.tag{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 10px}
+h1,h2{font-family:var(--display);font-weight:800;letter-spacing:-.02em;text-wrap:balance;margin:0}
+h1{font-size:30px;line-height:1.1}
+h2{font-size:20px;line-height:1.2}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.label{font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:15px}
+input[type=text],textarea,select{font:16px/1.4 var(--body);color:var(--fg);background:var(--raise);border:1px solid var(--line);border-radius:12px;padding:12px}
+textarea{min-height:84px;resize:vertical}
+.check{flex-direction:row;align-items:center;gap:10px;font-weight:400}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+button{font:700 17px/1 var(--body);border-radius:14px;border:1px solid var(--line);background:var(--raise);color:var(--fg);padding:16px 18px;cursor:pointer;min-height:52px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+button.danger{background:var(--danger);color:var(--danger-ink);border-color:transparent}
+button.ghost{background:transparent}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row > *{flex:1 1 140px}
+
+/* status */
+.status{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pill{font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;border-radius:99px;background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.pill.warn{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--fg)}
+.pill.bad{background:var(--danger);color:var(--danger-ink)}
+.big{font:500 44px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:var(--raise);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.metric strong{font:500 22px/1 var(--mono);font-variant-numeric:tabular-nums}
+svg.spark{width:100%;height:56px;display:block}
+.sim{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sim button{font-size:13px;padding:10px 8px;min-height:44px;line-height:1.2}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.log li{display:flex;gap:10px}
+.log time{font:500 12px/1.6 var(--mono);color:var(--muted);flex:0 0 auto;font-variant-numeric:tabular-nums}
+
+/* hold button */
+.hold{position:relative;overflow:hidden;background:transparent;border:2px solid var(--danger);color:var(--danger);user-select:none;-webkit-user-select:none;touch-action:none}
+.hold .fill{position:absolute;inset:0;background:var(--danger);transform:scaleX(0);transform-origin:left;z-index:0}
+.hold span{position:relative;z-index:1}
+.hold.active span{color:var(--danger-ink)}
+
+/* response test */
+.arena{position:relative;width:100%;aspect-ratio:1/1;max-width:100%;background:var(--raise);border-radius:18px;border:1px solid var(--line);touch-action:manipulation}
+.target{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:none;padding:0;min-height:0;font:800 24px/1 var(--display);background:var(--surface);color:var(--fg);box-shadow:inset 0 0 0 2px var(--line)}
+.target.next{box-shadow:inset 0 0 0 3px var(--accent)}
+.target.done{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.target.miss{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.timer{height:8px;border-radius:99px;background:var(--raise);overflow:hidden}
+.timer i{display:block;height:100%;background:var(--accent);transform-origin:left}
+
+/* alert */
+.alertcard{background:color-mix(in srgb,var(--danger) 14%,var(--surface));border-color:var(--danger)}
+.msg{background:var(--raise);border-radius:12px;padding:14px;font-size:15px;white-space:pre-wrap;word-wrap:break-word}
+.contacts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.contacts li{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:var(--raise)}
+.contacts li span:last-child{font:500 12px/1.6 var(--mono);color:var(--muted)}
+
+footer{display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--muted)}
+footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+@media (prefers-reduced-motion: reduce){ .target.miss{animation:none} }
+</style>
+
+<main class="wrap">
+  <header>
+    <div class="brand"><span class="dot" aria-hidden="true"></span>Still Here</div>
+    <span class="tag">Prototype · nothing is sent</span>
+  </header>
+
+  <!-- SETUP -->
+  <section id="s-setup" class="stack">
+    <h1>Set up before you go out</h1>
+    <p class="muted">Still Here checks on you during the night. If you stop responding, it tells the people you pick where you are.</p>
+    <form id="setup" class="card">
+      <label for="f-name">Your first name
+        <input id="f-name" type="text" autocomplete="given-name" value="Jess">
+      </label>
+      <label for="f-contacts">Who should be alerted? One per line
+        <textarea id="f-contacts">Maya (roommate)
+Sam (sister)</textarea>
+      </label>
+      <label for="f-interval">Check on me every
+        <select id="f-interval">
+          <option value="15">15 minutes</option>
+          <option value="30" selected>30 minutes</option>
+          <option value="60">60 minutes</option>
+        </select>
+      </label>
+      <label class="check" for="f-demo"><input id="f-demo" type="checkbox" checked> Demo speed: check every 60 seconds</label>
+      <p class="small muted">The name and contacts are examples. Change them to try it.</p>
+      <button class="primary" type="submit">Next: learn my normal speed</button>
+    </form>
+  </section>
+
+  <!-- CALIBRATE -->
+  <section id="s-calib" class="stack" hidden>
+    <h1>Tap 1, 2, 3, 4 in order</h1>
+    <p class="muted" id="calib-note">Do this now, while you're clear-headed. It sets your normal speed, so later checks compare you to you. Round <span id="calib-round">1</span> of 2.</p>
+    <div class="arena" id="calib-arena"></div>
+  </section>
+
+  <!-- ARMED -->
+  <section id="s-armed" class="stack" hidden>
+    <div class="card">
+      <div class="status">
+        <span class="label">Night mode</span>
+        <span class="pill" id="armed-pill">Watching</span>
+      </div>
+      <div>
+        <p class="label">Next check-in</p>
+        <p class="big" id="next-in">--:--</p>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="label">Heart rate</span><strong id="hr">--</strong><svg class="spark" id="spark" viewBox="0 0 120 40" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points=""/></svg></div>
+        <div class="metric"><span class="label">Movement</span><strong id="motion">Active</strong><span class="small muted">Normal speed: <span id="baseline">--</span></span></div>
+      </div>
+      <button class="hold" id="hold" type="button"><span class="fill"></span><span>Hold 3 seconds for help</span></button>
+    </div>
+
+    <div class="card">
+      <h2>Try what the watch would notice</h2>
+      <p class="small muted">In the real app these come from Apple Watch sensors. Here you can trigger them by hand.</p>
+      <div class="sim">
+        <button type="button" data-sim="hr">Heart rate drop</button>
+        <button type="button" data-sim="fall">Stumble or fall</button>
+        <button type="button" data-sim="still">Too still</button>
+      </div>
+      <button type="button" class="ghost" id="check-now">Check on me now</button>
+    </div>
+
+    <div class="card">
+      <h2>Tonight</h2>
+      <ul class="log" id="log"></ul>
+      <button type="button" class="ghost" id="end-night">End night mode</button>
+    </div>
+  </section>
+
+  <!-- CHECK -->
+  <section id="s-check" class="stack" hidden>
+    <div class="status"><h1>Are you OK?</h1><span class="pill warn" id="check-pill">Check-in</span></div>
+    <p id="check-reason"></p>
+    <div class="timer" aria-hidden="true"><i id="check-bar"></i></div>
+    <p class="small muted" id="check-left">Tap 1, 2, 3, 4 in order.</p>
+    <div class="arena" id="check-arena"></div>
+    <button type="button" class="danger" id="need-help">I need help</button>
+  </section>
+
+  <!-- ALERT -->
+  <section id="s-alert" class="stack" hidden>
+    <div class="card alertcard">
+      <div class="status"><h1>Alerting your people</h1><span class="pill bad">Alert</span></div>
+      <p id="alert-reason"></p>
+      <ul class="contacts" id="alert-contacts"></ul>
+      <div>
+        <p class="label" style="margin-bottom:8px">The text they would get</p>
+        <div class="msg" id="alert-msg"></div>
+      </div>
+      <p class="small muted">In the real app this goes out by text with a live location link, and keeps updating until someone confirms they're with you. This prototype sends nothing.</p>
+    </div>
+    <div class="row">
+      <button type="button" class="primary" id="all-clear">I'm safe now</button>
+      <button type="button" id="restart">Start over</button>
+    </div>
+  </section>
+
+  <footer>
+    <p class="label">What the Apple Watch version adds</p>
+    <ul>
+      <li>Real heart rate, heart-rate variability and motion from the watch, compared to your own baseline.</li>
+      <li>Checks on your wrist with a strong vibration, so you don't need your phone out.</li>
+      <li>Texts with live location sent from your iPhone or a cellular watch.</li>
+    </ul>
+    <p>Still Here is open-source safety software, not a medical device. It can't tell whether a drink was spiked. It notices when you stop responding normally. Keep using drink covers, stay with friends, and call 911 in an emergency.</p>
+  </footer>
+</main>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const screens = ['setup','calib','armed','check','alert'];
+let mode = 'setup';
+function show(name){ mode = name; screens.forEach(s => { $('#s-'+s).hidden = s !== name; }); window.scrollTo(0,0); }
+
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+let cfg = store.get('stillhere-cfg', null);
+if (cfg){
+  $('#f-name').value = cfg.name; $('#f-contacts').value = cfg.contacts.join('\n');
+  $('#f-interval').value = String(cfg.interval); $('#f-demo').checked = cfg.demo;
+}
+
+const fmtClock = d => d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+const fmtSec = s => (s/1000).toFixed(1)+'s';
+function buzz(p){ try { navigator.vibrate && navigator.vibrate(p); } catch(e){} }
+
+function log(text){
+  const li = document.createElement('li');
+  const t = document.createElement('time'); t.textContent = fmtClock(new Date());
+  const s = document.createElement('span'); s.textContent = text;
+  li.append(t, s); $('#log').prepend(li);
+}
+
+/* ---------- response test ---------- */
+function runTest(arena, onDone){
+  arena.innerHTML = '';
+  const pts = [];
+  while (pts.length < 4){
+    const p = {x: 14 + Math.random()*72, y: 14 + Math.random()*72};
+    if (pts.every(q => Math.hypot(q.x-p.x, q.y-p.y) > 26)) pts.push(p);
+  }
+  let next = 1, errors = 0, start = null, finished = false;
+  const els = pts.map((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'target' + (i === 0 ? ' next' : '');
+    b.style.left = p.x + '%'; b.style.top = p.y + '%';
+    b.textContent = i + 1; b.setAttribute('aria-label', 'Target ' + (i+1));
+    b.addEventListener('click', () => {
+      if (finished) return;
+      if (start === null) start = performance.now();
+      if (i + 1 === next){
+        b.classList.remove('next'); b.classList.add('done'); next++;
+        if (els[next-1]) els[next-1].classList.add('next');
+        if (next > 4){ finished = true; onDone({time: performance.now() - start, errors}); }
+      } else {
+        errors++; b.classList.remove('miss'); void b.offsetWidth; b.classList.add('miss'); buzz(60);
+      }
+    });
+    arena.appendChild(b); return b;
+  });
+  // the clock starts at first tap; time to first tap is covered by the overall deadline
+  return () => { finished = true; };
+}
+
+/* ---------- setup ---------- */
+$('#setup').addEventListener('submit', e => {
+  e.preventDefault();
+  cfg = {
+    name: $('#f-name').value.trim() || 'Your friend',
+    contacts: $('#f-contacts').value.split('\n').map(s => s.trim()).filter(Boolean),
+    interval: Number($('#f-interval').value),
+    demo: $('#f-demo').checked,
+    baseline: null
+  };
+  if (!cfg.contacts.length){ $('#f-contacts').focus(); return; }
+  store.set('stillhere-cfg', cfg);
+  startCalibration();
+});
+
+/* ---------- calibration ---------- */
+function startCalibration(){
+  show('calib');
+  const times = [];
+  const round = () => {
+    $('#calib-round').textContent = times.length + 1;
+    runTest($('#calib-arena'), r => {
+      times.push(r.time);
+      if (times.length < 2) setTimeout(round, 500);
+      else { cfg.baseline = times.reduce((a,b)=>a+b,0)/times.length; store.set('stillhere-cfg', cfg); arm(); }
+    });
+  };
+  round();
+}
+
+/* ---------- armed ---------- */
+let simTimer = null, tickId = null, nextCheckAt = 0, hr = 88, hrTarget = 88, hrHist = [], lastHr = 0;
+function intervalMs(){ return cfg.demo ? 60000 : cfg.interval * 60000; }
+function scheduleNext(){ nextCheckAt = Date.now() + intervalMs(); }
+
+function arm(){
+  show('armed');
+  $('#baseline').textContent = fmtSec(cfg.baseline);
+  if (!$('#log').children.length) log('Night mode on. ' + cfg.contacts.length + ' contacts ready.');
+  scheduleNext();
+  hrTarget = 88; $('#motion').textContent = 'Active';
+  $('#armed-pill').textContent = 'Watching';
+  clearInterval(tickId);
+  tickId = setInterval(tick, 250);
+  tick();
+}
+
+function tick(){
+  const now = Date.now();
+  const left = Math.max(0, nextCheckAt - now);
+  const m = Math.floor(left/60000), s = Math.floor(left/1000)%60;
+  $('#next-in').textContent = m + ':' + String(s).padStart(2,'0');
+  if (now - lastHr > 1000){
+    lastHr = now;
+    hr += (hrTarget - hr) * 0.25 + (Math.random()*4 - 2);
+    hrHist.push(hr); if (hrHist.length > 40) hrHist.shift();
+    $('#hr').textContent = Math.round(hr) + ' bpm';
+    const lo = 40, hi = 130;
+    $('#spark polyline').setAttribute('points', hrHist.map((v,i) => (i*(120/39)).toFixed(1)+','+(40 - (v-lo)/(hi-lo)*40).toFixed(1)).join(' '));
+  }
+  if (left === 0) startCheck('Scheduled check-in.');
+}
+
+document.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => {
+  const kind = b.dataset.sim;
+  if (kind === 'hr'){
+    hrTarget = 54; $('#armed-pill').textContent = 'Something changed'; $('#armed-pill').className = 'pill warn';
+    log('Heart rate falling fast in a busy place.');
+    clearTimeout(simTimer);
+    simTimer = setTimeout(() => {
+      if (mode === 'armed') startCheck('Your heart rate dropped from about 90 to the mid 50s while you were out, which isn\'t normal for you.');
+    }, 3500);
+  } else if (kind === 'fall'){
+    log('Stumble or fall detected.');
+    startCheck('Your watch felt a stumble or a fall.');
+  } else {
+    $('#motion').textContent = 'Still'; log('No movement for 10 minutes in a busy place.');
+    startCheck('You haven\'t moved for a while, which is unusual for you on a night out.');
+  }
+}));
+$('#check-now').addEventListener('click', () => startCheck('You asked for a check.'));
+$('#end-night').addEventListener('click', () => { clearInterval(tickId); clearTimeout(simTimer); log('Night mode off.'); show('setup'); });
+
+/* hold for help */
+(function(){
+  const btn = $('#hold'), fill = btn.querySelector('.fill');
+  let t0 = 0, raf = 0;
+  const step = () => {
+    const p = Math.min(1, (performance.now() - t0)/3000);
+    fill.style.transform = 'scaleX(' + p + ')';
+    if (p >= 1){ stop(); raiseAlert('You held the help button.'); return; }
+    raf = requestAnimationFrame(step);
+  };
+  const start = e => { e.preventDefault(); t0 = performance.now(); btn.classList.add('active'); buzz(30); raf = requestAnimationFrame(step); };
+  const stop = () => { cancelAnimationFrame(raf); fill.style.transform = 'scaleX(0)'; btn.classList.remove('active'); };
+  btn.addEventListener('pointerdown', start);
+  ['pointerup','pointerleave','pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
+  btn.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat){ start(e); } });
+  btn.addEventListener('keyup', stop);
+})();
+
+/* ---------- check ---------- */
+const CHECK_MS = 30000;   // the real app would allow about 60 seconds
+let checkTimer = null, cancelTest = null, checkEnds = 0, attempts = 0, checkReason = '';
+
+function startCheck(reason){
+  if (mode !== 'armed') return;   // a check is already open, or night mode has ended
+  clearInterval(tickId); clearTimeout(simTimer);
+  checkReason = reason; attempts = 0;
+  $('#check-reason').textContent = reason;
+  $('#check-pill').textContent = 'Check-in';
+  show('check'); buzz([300,150,300,150,300]);
+  checkEnds = Date.now() + CHECK_MS;
+  clearInterval(checkTimer);
+  checkTimer = setInterval(() => {
+    const left = Math.max(0, checkEnds - Date.now());
+    $('#check-bar').style.transform = 'scaleX(' + (left/CHECK_MS) + ')';
+    if (left === 0){ endCheck(); raiseAlert(reason + ' Then there was no response to the check-in.'); }
+  }, 100);
+  attempt();
+}
+function attempt(){
+  attempts++;
+  $('#check-left').textContent = attempts === 1 ? 'Tap 1, 2, 3, 4 in order.' : 'That was slower than your normal. Try once more.';
+  cancelTest = runTest($('#check-arena'), r => {
+    const limit = Math.max(cfg.baseline * 2.2, cfg.baseline + 2500);
+    const ok = r.time <= limit && r.errors <= 2;
+    if (ok){
+      endCheck();
+      log('Passed check in ' + fmtSec(r.time) + ' (normal ' + fmtSec(cfg.baseline) + ').');
+      arm();
+    } else if (attempts < 2){
+      setTimeout(attempt, 400);
+    } else {
+      endCheck();
+      raiseAlert(checkReason + ' Then two response tests came back much slower than normal (' + fmtSec(r.time) + ' vs ' + fmtSec(cfg.baseline) + ').');
+    }
+  });
+}
+function endCheck(){ clearInterval(checkTimer); if (cancelTest) cancelTest(); }
+$('#need-help').addEventListener('click', () => { endCheck(); raiseAlert('You tapped "I need help."'); });
+
+/* ---------- alert ---------- */
+function raiseAlert(reason){
+  clearInterval(tickId); endCheck();
+  const at = fmtClock(new Date());
+  $('#alert-reason').textContent = reason;
+  const ul = $('#alert-contacts'); ul.innerHTML = '';
+  cfg.contacts.forEach(c => {
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.textContent = c;
+    const b = document.createElement('span'); b.textContent = 'would be texted';
+    li.append(a, b); ul.appendChild(li);
+  });
+  $('#alert-msg').textContent =
+    'Still Here alert for ' + cfg.name + ' at ' + at + '.\n\n' +
+    reason + '\n\n' +
+    'Live location: (link to map)\n\n' +
+    'Please call ' + cfg.name + ' or go to them now. If you can\'t reach ' + cfg.name + ' and you think they\'re in danger, call 911.';
+  log('Alert sent to ' + cfg.contacts.length + ' contacts.');
+  show('alert'); buzz([600,200,600]);
+}
+$('#all-clear').addEventListener('click', () => { log('All-clear sent. In the real app this needs your passcode.'); arm(); });
+$('#restart').addEventListener('click', () => { $('#log').innerHTML = ''; show('setup'); });
+
+show('setup');
+})();
+</script>

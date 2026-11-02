@@ -1,0 +1,47 @@
+PASS  Normal night out (4 h: talk, dance, sit, walk)  [100/100 runs]
+      example: nothing  (baseline 83 bpm)
+PASS  Drugged: heart rate falls 95→58 and she slumps (symptoms start at 75 min)  [100/100 runs]
+      example: heartRate@96.0m  (baseline 92 bpm)
+      first check-in across runs: earliest 93.8m, median 95.1m, latest 96.4m
+PASS  Drugged, small heart-rate change (only stillness gives it away)  [100/100 runs]
+      example: stillness@99.5m  (baseline 88 bpm)
+      first check-in across runs: earliest 88.3m, median 98.6m, latest 100.0m
+PASS  Drugged after 2 hours of dancing (no recent calm moments to compare with)  [100/100 runs]
+      example: heartRate@151.7m  (baseline 88 bpm)
+      first check-in across runs: earliest 150.8m, median 152.9m, latest 159.8m
+PASS  Falls while dancing and stays down  [100/100 runs]
+      example: stumble@50.2m  (baseline - bpm)
+      first check-in across runs: earliest 50.2m, median 50.2m, latest 50.2m
+PASS  Hard bump while dancing (high-five, arm hits table), keeps dancing  [100/100 runs]
+      example: nothing  (baseline - bpm)
+PASS  Trips, gets right back up after 3 seconds  [100/100 runs]
+      example: nothing  (baseline - bpm)
+PASS  Heart-rate sensor glitches (0, 300, missing values)  [100/100 runs]
+      example: nothing  (baseline 90 bpm)
+PASS  Loose watch: heart rate reads 50 for one minute, then normal  [100/100 runs]
+      example: nothing  (baseline 90 bpm)
+PASS  Racing heart while sitting still (panic or stimulant)  [100/100 runs]
+      example: heartRate@30.3m  (baseline 88 bpm)
+      first check-in across runs: earliest 30.1m, median 30.5m, latest 30.8m
+PASS  High heart rate from dancing (moving, so not suspicious)  [100/100 runs]
+      example: nothing  (baseline 88 bpm)
+PASS  Nervous arrival: heart rate 118 for first 10 min, then relaxed 80  [100/100 runs]
+      example: nothing  (baseline 79 bpm)
+PASS  Calm evening: sits with heart rate in the low 60s for an hour  [100/100 runs]
+      example: heartRate@41.7m  (baseline 62 bpm)
+PASS  Sits very still scrolling a phone for an hour  [100/100 runs]
+      example: stillness@63.5m, stillness@81.0m  (baseline 80 bpm)
+PASS  Takes the watch off and leaves it on a table (motion only; the app also checks when heart rate stops)  [100/100 runs]
+      example: stillness@45.0m  (baseline - bpm)
+      first check-in across runs: earliest 45.0m, median 45.0m, latest 45.0m
+PASS  Response rule: same speed as baseline → pass
+PASS  Response rule: 2.2x baseline, just under the limit → pass
+PASS  Response rule: slower than baseline + 2.5 s → fail
+PASS  Response rule: fast but 3 wrong taps → fail
+PASS  Response rule: fast with 2 wrong taps → pass
+PASS  Response rule: slow baseline person, 2x → pass
+PASS  Response rule: slow baseline person, 2.3x → fail
+PASS  Response rule: no baseline recorded: never fails → pass
+PASS  Response rule: bad timing value: does not fail on its own → pass
+
+All scenarios passed.
