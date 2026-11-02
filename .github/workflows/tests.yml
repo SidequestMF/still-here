@@ -29,5 +29,5 @@ jobs:
         run: bash tests/run-kotlin-checks.sh
       - name: Web prototype in Chrome
         run: |
-          pip install playwright==1.48.0
+          pip install playwright==1.55.0
           python tests/prototype_test.py
