@@ -10,7 +10,8 @@ SRC=$(find "$ROOT/android/shared/src" -name '*.kt')
 
 if command -v kotlinc >/dev/null; then
   kotlinc $SRC -d "$OUT/classes" 2>&1 | grep -v warning || true
-  STDLIB="$(dirname "$(command -v kotlinc)")/../lib/kotlin-stdlib.jar"
+  STDLIB="$(dirname "$(readlink -f "$(command -v kotlinc)")")/../lib/kotlin-stdlib.jar"
+  [ -f "$STDLIB" ] || { echo "Could not find kotlin-stdlib.jar next to kotlinc"; exit 1; }
 else
   L="$(dirname "$(readlink -f "$(command -v gradle)")")/../lib"
   STDLIB=$(ls "$L"/kotlin-stdlib-*.jar | head -1)
